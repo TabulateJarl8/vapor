@@ -2,7 +2,7 @@
 
 Vapor is a Python package built on [Textual](https://github.com/textualize/textual/) which offers a simple Terminal User Interface for checking ProtonDB compatibility ratings of games in a Steam user's library. The tool seamlessly integrates Steam and ProtonDB APIs to provide insightful compatibility information.
 
-![Vapor Showing Information](img/info.png)
+![Vapor Showing Information](https://raw.githubusercontent.com/TabulateJarl8/vapor/master/img/info.png)
 
 ## Installation
 [pipx](https://pipx.pypa.io/stable/) is a great tool for installing Python packages in an isolated environment. If wanting to install via `pipx`, just run
@@ -16,7 +16,7 @@ pip3 install vapor-steam
 
 Arch user's can install the package from the AUR with your favorite AUR helper:
 ```shell
-paru -S python-vapor
+paru -S python-vapor-steam
 ```
 Or manually with `makepkg`:
 ```shell
