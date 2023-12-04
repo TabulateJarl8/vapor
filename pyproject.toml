@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "vapor"
 version = "1.0.0"
-description = "TUI program to check the ProtonDB compatibility of all the games of a user."
+description = "TUI program to check the ProtonDB compatibility of all the games of a Steam user."
 authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
 license = "GPLv3"
 readme = "README.md"
