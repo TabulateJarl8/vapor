@@ -5,9 +5,9 @@ from textual.containers import Center
 from textual.validation import Regex
 from textual.widgets import Button, DataTable, Header, Input, Label
 
-from src.api_interface import get_steam_user_data
-from src.data_structures import RATING_DICT
-from src.exceptions import InvalidIDError, UnauthorizedError
+from vapor.api_interface import get_steam_user_data
+from vapor.data_structures import RATING_DICT
+from vapor.exceptions import InvalidIDError, UnauthorizedError
 
 
 class SteamApp(App):

@@ -5,11 +5,30 @@ description = "A TUI program to check the ProtonDB compatibility of all the game
 authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
 license = "GPLv3"
 readme = "README.md"
+packages = [{include = "vapor"}]
+homepage = "https://tabulate.tech/software/vapor"
+repository = "https://github.com/TabulateJarl8/vapor"
+keywords = ["steam", "protondb", "compatibility", "textual", "tui"]
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Environment :: Console",
+	"Intended Audience :: End Users/Desktop",
+	"License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+	"Natural Language :: English",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: 3.12",
+	"Typing :: Typed"
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
 textual = "^0.44.0"
 aiohttp = "^3.9.1"
+
+[tool.poetry.scripts]
+vapor = "vapor.__main__:main"
 
 [tool.poetry.group.dev.dependencies]
 textual-dev = "^1.2.1"

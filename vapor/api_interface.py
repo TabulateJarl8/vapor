@@ -2,8 +2,8 @@ import json
 
 import aiohttp
 
-from src.data_structures import RATING_DICT, Game, Response, SteamUserData
-from src.exceptions import InvalidIDError, UnauthorizedError
+from vapor.data_structures import RATING_DICT, Game, Response, SteamUserData
+from vapor.exceptions import InvalidIDError, UnauthorizedError
 
 
 async def get(session: aiohttp.ClientSession, url: str) -> Response:
