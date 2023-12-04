@@ -1,5 +1,6 @@
 ganglion.toml
 .ruff_cache/
+vapor_config.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

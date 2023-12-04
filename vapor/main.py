@@ -6,6 +6,7 @@ from textual.validation import Regex
 from textual.widgets import Button, DataTable, Header, Input, Label
 
 from vapor.api_interface import get_steam_user_data
+from vapor.config_handler import read_steam_api_key, write_steam_api_key
 from vapor.data_structures import RATING_DICT
 from vapor.exceptions import InvalidIDError, UnauthorizedError
 
@@ -18,6 +19,7 @@ class SteamApp(App):
 		yield Header()
 		yield Center(
 			Input(
+				value=read_steam_api_key(),
 				placeholder='Steam API Key',
 				id='api-key',
 				validators=Regex(r'[A-Z0-9]{32}'),
@@ -66,6 +68,8 @@ class SteamApp(App):
 			# get user's API key and ID
 			api_key: Input = self.query_one('#api-key')  # type: ignore
 			id: Input = self.query_one('#user-id')  # type: ignore
+
+			write_steam_api_key(api_key.value)
 
 			# Fetch user data
 			user_data = await get_steam_user_data(api_key.value, id.value)

@@ -60,8 +60,6 @@ extend-select = [
 	"N",
 	# flake8-bandit
 	"S",
-	# flake8-blind-except
-	"BLE",
 	# flake8-boolean-trap
 	"FBT",
 	# flake8-comprehensions
@@ -86,7 +84,7 @@ extend-select = [
 	# perflint
 	"PERF"
 ]
-ignore = ["E501", "E274"]
+ignore = ["E501", "E274", "S110"]
 
 [tool.ruff.format]
 quote-style = "single"
