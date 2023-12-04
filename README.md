@@ -1,6 +1,8 @@
 # Vapor: Steam Proton Compatibility Checker
 
-Vapor is a Python package which offers a Terminal User Interface (TUI) program for checking ProtonDB compatibility ratings of games in a Steam user's library. The tool seamlessly integrates Steam and ProtonDB APIs to provide insightful compatibility information.
+Vapor is a Python package built on [Textual](https://github.com/textualize/textual/) which offers a simple Terminal User Interface for checking ProtonDB compatibility ratings of games in a Steam user's library. The tool seamlessly integrates Steam and ProtonDB APIs to provide insightful compatibility information.
+
+![Vapor Showing Information](img/info.png)
 
 ## Installation
 [pipx](https://pipx.pypa.io/stable/) is a great tool for installing Python packages in an isolated environment. If wanting to install via `pipx`, just run
@@ -29,6 +31,7 @@ makepkg -si
 ## Features
  - **User Library Analysis**: Fetches and displays game compatibility ratings from ProtonDB for a specified Steam user.
  - **User Average Compatibility**: Calculates and presents the average game compatibility for the user's library.
+ - **Automatic Steam ID Resolution**: Vapor automatically resolves the given Steam ID, so you can use either your vanity name or your 64-bit Steam ID.
 
 ## Requirements
 This package is built on top of textual and aiohttp, and uses poetry to manage dependencies. To install dependencies locally, just run `poetry install` in the repository's directory.
