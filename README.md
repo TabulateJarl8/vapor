@@ -1,5 +1,17 @@
 # Vapor: Steam Proton Compatibility Checker
 
+<p align="center">
+	<a href="https://badge.fury.io/py/vapor-steam"><img alt="PyPI" src="https://img.shields.io/pypi/v/vapor-steam" /></a>
+	<a href="https://aur.archlinux.org/packages/python-vapor-steam/"><img alt="AUR version" src="https://img.shields.io/aur/version/python-vapor-steam"></a>
+	<a href="https://pepy.tech/project/vapor-steam"><img alt="Downloads" src="https://pepy.tech/badge/vapor-steam" /></a>
+	<a href="https://github.com/TabulateJarl8/vapor/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/vapor-steam.svg" /></a>
+	<a href="https://github.com/TabulateJarl8/vapor/graphs/commit-activity"><img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" /></a>
+	<a href="https://github.com/TabulateJarl8/vapor/issues/"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/TabulateJarl8/vapor.svg" /></a>
+	<a href="https://github.com/TabulateJarl8"><img alt="GitHub followers" src="https://img.shields.io/github/followers/TabulateJarl8?style=social" /></a>
+	<br>
+	<a href="https://ko-fi.com/L4L3L7IO2"><img alt="Kofi Badge" src="https://ko-fi.com/img/githubbutton_sm.svg" /></a>
+</p>
+
 Vapor is a Python package built on [Textual](https://github.com/textualize/textual/) which offers a simple Terminal User Interface for checking ProtonDB compatibility ratings of games in a Steam user's library. The tool seamlessly integrates Steam and ProtonDB APIs to provide insightful compatibility information.
 
 ![Vapor Showing Information](https://raw.githubusercontent.com/TabulateJarl8/vapor/master/img/info.png)
