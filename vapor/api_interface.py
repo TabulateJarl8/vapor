@@ -33,11 +33,12 @@ async def get_game_average_rating(id: str) -> str:
 		data = await get(
 			session, f'https://www.protondb.com/api/v1/reports/summaries/{id}.json'
 		)
-		json_data = json.loads(data.data)
-		if data.status != 200 or 'tier' not in json_data:
-			return 'unknown'
+		if data.status != 200:
+			return 'pending'
 
-		return json_data['tier']
+		json_data = json.loads(data.data)
+
+		return json_data.get('tier', 'pending')
 
 
 async def resolve_vanity_name(api_key: str, name: str) -> str:

@@ -41,7 +41,6 @@ class SteamUserData(NamedTuple):
 
 RATING_DICT: dict[str, ProtonDBRating] = {
 	'borked': ProtonDBRating(weight=0, color='red'),
-	'unknown': ProtonDBRating(weight=1, color='blue'),
 	'pending': ProtonDBRating(weight=1, color='blue'),
 	'bronze': ProtonDBRating(weight=2, color='#CD7F32'),
 	'silver': ProtonDBRating(weight=3, color='#A6A6A6'),
