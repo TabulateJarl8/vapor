@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vapor-steam"
-version = "1.0.2"
+version = "1.1.0"
 description = "TUI program to check the ProtonDB compatibility of all the games of a Steam user."
 authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
 license = "GPLv3"
@@ -85,7 +85,7 @@ extend-select = [
 	# perflint
 	"PERF"
 ]
-ignore = ["E501", "E274", "S110"]
+ignore = ["E501", "E274", "S110", "FBT001", "FBT002", "PERF203"]
 
 [tool.ruff.format]
 quote-style = "single"

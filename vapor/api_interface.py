@@ -2,6 +2,7 @@ import json
 
 import aiohttp
 
+from vapor import cache_handler
 from vapor.data_structures import RATING_DICT, Game, Response, SteamUserData
 from vapor.exceptions import InvalidIDError, UnauthorizedError
 
@@ -20,18 +21,52 @@ async def get(session: aiohttp.ClientSession, url: str) -> Response:
 		return Response(data=await response.text(), status=response.status)
 
 
-async def get_game_average_rating(id: str) -> str:
+async def check_game_is_native(app_id: int) -> bool:
+	"""Check if a given Steam game has native Linux support.
+
+	Args:
+		app_id (int): The App ID of the game.
+
+	Returns:
+		bool: Whether or not the game has native Linux support.
+	"""
+	async with aiohttp.ClientSession() as session:
+		data = await get(
+			session,
+			f'https://store.steampowered.com/api/appdetails?appids={app_id}&filters=platforms',
+		)
+		if data.status != 200:
+			return False
+
+		json_data = json.loads(data.data)[str(app_id)]
+
+		if json_data.get('success', False):
+			return json_data['data']['platforms'].get('linux', False)
+
+		return False
+
+
+async def get_game_average_rating(app_id: int, cache: dict[str, dict[str, str]]) -> str:
 	"""Get the average game rating from ProtonDB.
 
 	Args:
 		id (str): The game ID.
+		cache (dict[str, dict[str, str]]): The game cache. Can be an empty dict if no cache is wanted.
 
 	Returns:
 		str: A text rating from ProtonDB. gold, bronze, silver, etc.
 	"""
+	print(app_id, cache)
+	if str(app_id) in cache and 'rating' in cache[str(app_id)]:
+		print(app_id)
+		return cache[str(app_id)]['rating']
+
+	if await check_game_is_native(app_id):
+		return 'native'
+
 	async with aiohttp.ClientSession() as session:
 		data = await get(
-			session, f'https://www.protondb.com/api/v1/reports/summaries/{id}.json'
+			session, f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json'
 		)
 		if data.status != 200:
 			return 'pending'
@@ -94,6 +129,8 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		except InvalidIDError:
 			pass
 
+	cache = cache_handler.read_game_cache()
+
 	async with aiohttp.ClientSession() as session:
 		data = await get(
 			session,
@@ -108,14 +145,25 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		game_ratings = [
 			Game(
 				name=game['name'],
-				rating=await get_game_average_rating(game['appid']),
+				rating=await get_game_average_rating(game['appid'], cache),
 				playtime=game['playtime_forever'],
+				app_id=str(game['appid']),
 			)
 			for game in games
 		]
 
 		game_ratings.sort(key=lambda x: x.playtime)
 		game_ratings.reverse()
+
+		# remove all of the games that we used that were already cached
+		# this ensures that the timestamps of those games don't get updated
+		game_ratings_copy = game_ratings.copy()
+		for game in game_ratings_copy:
+			if game.app_id in cache:
+				game_ratings_copy.remove(game)
+
+		# update the game cache
+		cache_handler.update_game_cache(game_ratings)
 
 		# compute user average
 		game_rating_nums = [RATING_DICT[game.rating][0] for game in game_ratings]

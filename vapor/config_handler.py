@@ -1,11 +1,9 @@
 import configparser
 
-from platformdirs import user_config_path
+from vapor.data_structures import CONFIG_DIR
 
-CONFIG_PATH = (
-	user_config_path(appname='vapor', appauthor='tabulate', ensure_exists=True)
-	/ 'config.ini'
-)
+CONFIG_PATH = CONFIG_DIR / 'config.ini'
+"""The path to the config file."""
 
 
 def write_steam_api_key(api_key: str):

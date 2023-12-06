@@ -1,5 +1,10 @@
 from typing import NamedTuple
 
+from platformdirs import user_config_path
+
+CONFIG_DIR = user_config_path(appname='vapor', appauthor='tabulate', ensure_exists=True)
+"""The config directory used to write files such as config and cache."""
+
 
 class ProtonDBRating(NamedTuple):
 	"""A ProtonDB rating with a weight and a color."""
@@ -28,6 +33,8 @@ class Game(NamedTuple):
 	"""The ProtonDB rating."""
 	playtime: int
 	"""The game's playtime."""
+	app_id: str
+	"""The game's App ID."""
 
 
 class SteamUserData(NamedTuple):
@@ -46,4 +53,5 @@ RATING_DICT: dict[str, ProtonDBRating] = {
 	'silver': ProtonDBRating(weight=3, color='#A6A6A6'),
 	'gold': ProtonDBRating(weight=4, color='#CFB53B'),
 	'platinum': ProtonDBRating(weight=5, color='#B4C7DC'),
+	'native': ProtonDBRating(weight=6, color='green'),
 }

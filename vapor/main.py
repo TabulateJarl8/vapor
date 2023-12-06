@@ -5,6 +5,7 @@ from textual.containers import Center
 from textual.validation import Regex
 from textual.widgets import Button, DataTable, Header, Input, Label
 
+from vapor import argument_handler
 from vapor.api_interface import get_steam_user_data
 from vapor.config_handler import read_steam_api_key, write_steam_api_key
 from vapor.data_structures import RATING_DICT
@@ -115,5 +116,6 @@ class SteamApp(App):
 
 
 if __name__ == '__main__':
+	argument_handler.parse_args()
 	app = SteamApp()
 	app.run()
