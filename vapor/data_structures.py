@@ -1,9 +1,44 @@
+from enum import Enum
 from typing import NamedTuple
 
 from platformdirs import user_config_path
 
 CONFIG_DIR = user_config_path(appname='vapor', appauthor='tabulate', ensure_exists=True)
 """The config directory used to write files such as config and cache."""
+
+_ANTI_CHEAT_COLORS: dict[str, str] = {
+	'Denied': 'red',
+	'Broken': 'dark_orange3',
+	'Planned': 'purple',
+	'Running': 'blue',
+	'Supported': 'green',
+	'': '',
+}
+
+
+class AntiCheatStatus(Enum):
+	"""Anti-Cheat status for a Steam game."""
+
+	DENIED = 'Denied'
+	BROKEN = 'Broken'
+	PLANNED = 'Planned'
+	RUNNING = 'Running'
+	SUPPORTED = 'Supported'
+	BLANK = ''
+
+
+class AntiCheatData(NamedTuple):
+	"""Game data from AreWeAntiCheatYet."""
+
+	app_id: str
+	"""The Steam app id of the game."""
+	status: AntiCheatStatus
+	"""The status of running the Anti-Cheat on Linux."""
+
+	@property
+	def color(self) -> str:
+		"""The color of the Anti-Cheat status."""
+		return _ANTI_CHEAT_COLORS[self.status.value]
 
 
 class ProtonDBRating(NamedTuple):

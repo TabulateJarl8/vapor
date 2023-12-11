@@ -44,6 +44,7 @@ makepkg -si
  - **User Library Analysis**: Fetches and displays game compatibility ratings from ProtonDB for a specified Steam user.
  - **User Average Compatibility**: Calculates and presents the average game compatibility for the user's library.
  - **Automatic Steam ID Resolution**: Vapor automatically resolves the given Steam ID, so you can use either your vanity name or your 64-bit Steam ID.
+ - **AreWeAntiCheatYet Integration**: Integartion with Are We Anti-Cheat Yet? to show the anti-cheat compatibility status of your games.
 
 ## Requirements
 This package is built on top of textual and aiohttp, and uses poetry to manage dependencies. To install dependencies locally, just run `poetry install` in the repository's directory.

@@ -1,10 +1,31 @@
 import json
+from typing import Any, Iterable
 
 import aiohttp
 
 from vapor import cache_handler
-from vapor.data_structures import RATING_DICT, Game, Response, SteamUserData
+from vapor.data_structures import (
+	RATING_DICT,
+	AntiCheatData,
+	AntiCheatStatus,
+	Game,
+	Response,
+	SteamUserData,
+)
 from vapor.exceptions import InvalidIDError, UnauthorizedError
+
+
+def get_item_from_appid(iterable: Iterable, app_id: str) -> Any | None:
+	"""Get an item from a list that has a certain app id.
+
+	Args:
+		iterable (Iterable): The iterable to search.
+		app_id (str): The app id to search for.
+
+	Returns:
+		Any | None: The item if found. If not, None.
+	"""
+	return next((game for game in iterable if game.app_id == app_id), None)
 
 
 async def get(session: aiohttp.ClientSession, url: str) -> Response:
@@ -21,7 +42,7 @@ async def get(session: aiohttp.ClientSession, url: str) -> Response:
 		return Response(data=await response.text(), status=response.status)
 
 
-async def check_game_is_native(app_id: int) -> bool:
+async def check_game_is_native(app_id: str) -> bool:
 	"""Check if a given Steam game has native Linux support.
 
 	Args:
@@ -46,7 +67,41 @@ async def check_game_is_native(app_id: int) -> bool:
 		return False
 
 
-async def get_game_average_rating(app_id: int, cache: dict[str, dict[str, str]]) -> str:
+async def get_anti_cheat_data() -> list[AntiCheatData] | None:
+	"""Get's the anti-cheat data from cache. If expired, it will fetch new data and write that to cache.
+
+	Returns:
+		list[AntiCheatData] | None: The list of game anti-cheat data.
+	"""
+	cache = cache_handler.read_game_cache()
+	if 'anticheat' in cache:
+		return cache['anticheat']
+
+	async with aiohttp.ClientSession() as session:
+		data = await get(
+			session,
+			'https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json',
+		)
+
+		if data.status != 200:
+			return None
+
+		anti_cheat_data = json.loads(data.data)
+		deserialized_data = [
+			AntiCheatData(
+				app_id=game['storeIds']['steam'],
+				status=AntiCheatStatus(game['status']),
+			)
+			for game in anti_cheat_data
+			if 'steam' in game['storeIds']
+		]
+
+		cache_handler.update_game_cache(anti_cheat_data=deserialized_data)
+
+		return deserialized_data
+
+
+async def get_game_average_rating(app_id: str, cache: dict[str, list[Any]]) -> str:
 	"""Get the average game rating from ProtonDB.
 
 	Args:
@@ -56,10 +111,10 @@ async def get_game_average_rating(app_id: int, cache: dict[str, dict[str, str]])
 	Returns:
 		str: A text rating from ProtonDB. gold, bronze, silver, etc.
 	"""
-	print(app_id, cache)
-	if str(app_id) in cache and 'rating' in cache[str(app_id)]:
-		print(app_id)
-		return cache[str(app_id)]['rating']
+	if 'games' in cache:
+		game: Game | None = get_item_from_appid(cache['games'], app_id)
+		if game is not None:
+			return game.rating
 
 	if await check_game_is_native(app_id):
 		return 'native'
@@ -145,7 +200,7 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		game_ratings = [
 			Game(
 				name=game['name'],
-				rating=await get_game_average_rating(game['appid'], cache),
+				rating=await get_game_average_rating(str(game['appid']), cache),
 				playtime=game['playtime_forever'],
 				app_id=str(game['appid']),
 			)

@@ -6,9 +6,13 @@ from textual.validation import Regex
 from textual.widgets import Button, DataTable, Header, Input, Label
 
 from vapor import argument_handler
-from vapor.api_interface import get_steam_user_data
+from vapor.api_interface import (
+	get_anti_cheat_data,
+	get_item_from_appid,
+	get_steam_user_data,
+)
 from vapor.config_handler import read_steam_api_key, write_steam_api_key
-from vapor.data_structures import RATING_DICT
+from vapor.data_structures import RATING_DICT, AntiCheatData, AntiCheatStatus
 from vapor.exceptions import InvalidIDError, UnauthorizedError
 
 
@@ -40,7 +44,7 @@ class SteamApp(App):
 	def on_mount(self) -> None:
 		# add nothing to table so that it shows up
 		table = self.query_one(DataTable)
-		table.add_columns('Title', 'Compatibility')
+		table.add_columns('Title', 'Compatibility', 'Anti-Cheat Compatibility')
 
 		for _ in range(12):
 			table.add_row('', '')
@@ -72,17 +76,33 @@ class SteamApp(App):
 
 			write_steam_api_key(api_key.value)
 
+			# fetch anti-cheat data
+			ac_data = await get_anti_cheat_data()
+
 			# Fetch user data
 			user_data = await get_steam_user_data(api_key.value, id.value)
 			table.clear()
 
 			# Add games and ratings to the DataTable
 			for game in user_data.game_ratings:
+				if ac_data:
+					game_ac: AntiCheatData | None = get_item_from_appid(
+						ac_data, game.app_id
+					)
+					if not game_ac:
+						game_ac = AntiCheatData('', AntiCheatStatus.BLANK)
+				else:
+					game_ac = AntiCheatData('', AntiCheatStatus.BLANK)
+
 				table.add_row(
 					game.name,
 					Text(
 						game.rating.capitalize(),
 						style=RATING_DICT[game.rating][1],
+					),
+					Text(
+						game_ac.status.value,
+						style=game_ac.color,
 					),
 				)
 

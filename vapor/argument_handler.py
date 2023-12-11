@@ -16,4 +16,4 @@ def parse_args():
 	args = parser.parse_args()
 
 	if args.clear_cache:
-		cache_handler.CACHE_PATH.unlink()
+		cache_handler.CACHE_PATH.unlink(missing_ok=True)
