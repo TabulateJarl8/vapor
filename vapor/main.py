@@ -99,11 +99,9 @@ class SteamApp(App):
 					Text(
 						game.rating.capitalize(),
 						style=RATING_DICT[game.rating][1],
+						justify='center',
 					),
-					Text(
-						game_ac.status.value,
-						style=game_ac.color,
-					),
+					Text(game_ac.status.value, style=game_ac.color, justify='center'),
 				)
 
 			# Add the user's average rating to the screen
