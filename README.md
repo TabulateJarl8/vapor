@@ -26,7 +26,7 @@ This project can also be installed with pip normally with
 pip3 install vapor-steam
 ```
 
-Arch user's can install the package from the AUR with your favorite AUR helper:
+Arch users can install the package from the AUR with your favorite AUR helper:
 ```shell
 paru -S python-vapor-steam
 ```
