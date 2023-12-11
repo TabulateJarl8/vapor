@@ -1,5 +1,5 @@
 import json
-from typing import Any, Iterable
+from typing import Any, Iterable, Protocol, TypeVar
 
 import aiohttp
 
@@ -15,15 +15,23 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, UnauthorizedError
 
 
-def get_item_from_appid(iterable: Iterable, app_id: str) -> Any | None:
+# typing classes
+class HasAppID(Protocol):
+	app_id: str
+
+
+T = TypeVar('T', bound=HasAppID)
+
+
+def get_item_from_appid(iterable: Iterable[T], app_id: str) -> T | None:
 	"""Get an item from a list that has a certain app id.
 
 	Args:
-		iterable (Iterable): The iterable to search.
+		iterable (Iterable[T]): The iterable to search.
 		app_id (str): The app id to search for.
 
 	Returns:
-		Any | None: The item if found. If not, None.
+		T | None: The item if found. If not, None.
 	"""
 	return next((game for game in iterable if game.app_id == app_id), None)
 
