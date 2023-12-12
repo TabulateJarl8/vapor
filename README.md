@@ -44,6 +44,7 @@ makepkg -si
  - **User Library Analysis**: Fetches and displays game compatibility ratings from ProtonDB for a specified Steam user.
  - **User Average Compatibility**: Calculates and presents the average game compatibility for the user's library.
  - **Automatic Steam ID Resolution**: Vapor automatically resolves the given Steam ID, so you can use either your vanity name or your 64-bit Steam ID.
+ - **Automatic Steam URL Detection**: Directly paste a Steam user profile URL, like `https://steamcommunity.com/id/<user>` or `https://steamcommunity.com/profiles/<user>` into the "User ID" box and it will be detected and parsed correctly.
  - **AreWeAntiCheatYet Integration**: Integartion with Are We Anti-Cheat Yet? to show the anti-cheat compatibility status of your games.
 
 ## Requirements

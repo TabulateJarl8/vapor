@@ -1,3 +1,6 @@
+from pathlib import Path
+from urllib.parse import urlparse
+
 from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
@@ -78,6 +81,14 @@ class SteamApp(App):
 
 			# fetch anti-cheat data
 			ac_data = await get_anti_cheat_data()
+
+			# parse id input to add URL compatibility
+			parsed_url = urlparse(id.value)
+			if parsed_url.netloc == 'steamcommunity.com' and (
+				'/profiles/' in parsed_url.path or '/id/' in parsed_url.path
+			):
+				id.value = Path(parsed_url.path).name
+				id.refresh()
 
 			# Fetch user data
 			user_data = await get_steam_user_data(api_key.value, id.value)
