@@ -12,7 +12,7 @@ from vapor.data_structures import (
 	Response,
 	SteamUserData,
 )
-from vapor.exceptions import InvalidIDError, UnauthorizedError
+from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
 # typing classes
@@ -191,7 +191,11 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		if data.status == 401:
 			raise UnauthorizedError
 
-		games = json.loads(data.data)['response']['games']
+		data = json.loads(data.data)['response']
+		if 'games' not in data:
+			raise PrivateAccountError
+
+		games = data['games']
 		game_ratings = [
 			Game(
 				name=game['name'],

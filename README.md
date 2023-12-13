@@ -50,5 +50,16 @@ makepkg -si
 ## Requirements
 This package is built on top of textual and aiohttp, and uses poetry to manage dependencies. To install dependencies locally, just run `poetry install` in the repository's directory.
 
+## Private Steam Account Error
+This error occurs if your game details are set to private in your privacy settings. First, double check that you're using the correct Steam ID or vanity URL. This is different from your display name. To make sure, you can directly copy your profile URL into Vapor and your Steam ID will be extracted. Your profile URL will look like `https://steamcommunity.com/id/<vanity_name>` or `https://steamcommunity.com/profiles/<steam_id>`.
+
+If you've double checked that your account information is correct, please complete the following steps to fix this issue:
+
+1. From Steam, click the user dropdown and select "View my profile"
+1. Click the "Edit Profile" button
+2. Click the "Privacy Settings" tab
+3. Set "Game details" to Public
+4. Uncheck the Always keep my total playtime private option
+
 ## Contributing
 Contributions are welcomed! For bug fixes, improvements, or feature requests, feel free to open an issue or pull request.

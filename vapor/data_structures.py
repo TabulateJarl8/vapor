@@ -6,6 +6,18 @@ from platformdirs import user_config_path
 CONFIG_DIR = user_config_path(appname='vapor', appauthor='tabulate', ensure_exists=True)
 """The config directory used to write files such as config and cache."""
 
+PRIVATE_ACCOUNT_HELP_MESSAGE = """
+Your Steam account is currently private. See README for more details.
+
+Please change your Steam profile privacy settings:
+
+1. From Steam, click the user dropdown and select "View my profile"
+1. Click the "Edit Profile" button
+2. Click the "Privacy Settings" tab
+3. Set "Game details" to Public
+4. Uncheck the Always keep my total playtime private option
+""".strip()
+
 _ANTI_CHEAT_COLORS: dict[str, str] = {
 	'Denied': 'red',
 	'Broken': 'dark_orange3',

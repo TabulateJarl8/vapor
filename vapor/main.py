@@ -14,8 +14,13 @@ from vapor.api_interface import (
 	get_steam_user_data,
 )
 from vapor.config_handler import read_steam_api_key, write_steam_api_key
-from vapor.data_structures import RATING_DICT, AntiCheatData, AntiCheatStatus
-from vapor.exceptions import InvalidIDError, UnauthorizedError
+from vapor.data_structures import (
+	PRIVATE_ACCOUNT_HELP_MESSAGE,
+	RATING_DICT,
+	AntiCheatData,
+	AntiCheatStatus,
+)
+from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
 class SteamApp(App):
@@ -31,7 +36,11 @@ class SteamApp(App):
 				id='api-key',
 				validators=Regex(r'[A-Z0-9]{32}'),
 			),
-			Input(placeholder='User ID', id='user-id', validators=Regex(r'.+')),
+			Input(
+				placeholder='Profile URL or Steam ID',
+				id='user-id',
+				validators=Regex(r'.+'),
+			),
 			id='input-container',
 		)
 		yield Center(Button('Check Profile', variant='primary'))
@@ -127,6 +136,13 @@ class SteamApp(App):
 			self.notify('Invalid Steam User ID', title='Error', severity='error')
 		except UnauthorizedError:
 			self.notify('Invalid Steam API Key', title='Error', severity='error')
+		except PrivateAccountError:
+			self.notify(
+				PRIVATE_ACCOUNT_HELP_MESSAGE,
+				title='Error',
+				severity='error',
+				timeout=15.0,
+			)
 		finally:
 			# re-enable Input widgets
 			for item in self.query(Input):
