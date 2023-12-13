@@ -1,7 +1,6 @@
-import contextlib
 import json
 from datetime import datetime
-from typing import Any
+from typing import Self
 
 from vapor.data_structures import CONFIG_DIR, AntiCheatData, AntiCheatStatus, Game
 
@@ -15,116 +14,186 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 """Cache timestamp format."""
 
 
-def update_game_cache(
-	game_list: list[Game] | None = None,
-	anti_cheat_data: list[AntiCheatData] | None = None,
-):
-	"""Update the cache file with a new list of games or anticheat.
+class Cache:
+	def __init__(self):
+		self._games_data: dict[str, Game] = {}
+		self._anti_cheat_data: dict[str, AntiCheatData] = {}
 
-	Args:
-		game_list (list[Game] | None, optional): The list of games. Defaults to None.
-		anti_cheat_data (list[AntiCheatData] | None, optional): The anti-cheat data to cache. Defaults to None.
-	"""
-	if game_list:
-		serialized_games = {
-			'games': {
-				game.app_id: {
-					'name': game.name,
-					'rating': game.rating,
-					'playtime': game.playtime,
-					'timestamp': datetime.now().strftime(TIMESTAMP_FORMAT),
-				}
-				for game in game_list
+	def _serialize_game_data(self) -> dict:
+		"""Serialize the game data into a valid JSON dict.
+
+		Returns:
+			dict: Valid JSON dict.
+		"""
+		return {
+			app_id: {
+				'name': game.name,
+				'rating': game.rating,
+				'playtime': game.playtime,
+				'timestamp': datetime.now().strftime(TIMESTAMP_FORMAT),
 			}
+			for app_id, game in self._games_data.items()
 		}
-	else:
-		serialized_games = {}
 
-	current_games = {}
-	if CACHE_PATH.is_file():
-		# try to read the current game cache into a dictionary
-		with contextlib.suppress(Exception):
-			current_games |= json.loads(CACHE_PATH.read_text())
+	def _serialize_anti_cheat_data(self) -> dict:
+		"""Serialize the anticheat data into a valid JSON dict.
 
-	current_games |= serialized_games
-
-	if anti_cheat_data:
-		current_games['anticheat'] = {}
-		current_games['anticheat']['data'] = {
-			data.app_id: data.status.value for data in anti_cheat_data
+		Returns:
+			dict: Valid JSON dict.
+		"""
+		return {
+			'data': {
+				app_id: ac_data.status.value
+				for app_id, ac_data in self._anti_cheat_data.items()
+			},
+			'timestamp': datetime.now().strftime(TIMESTAMP_FORMAT)
 		}
-		current_games['anticheat']['timestamp'] = datetime.now().strftime(
-			TIMESTAMP_FORMAT
-		)
 
-	CACHE_PATH.write_text(json.dumps(current_games))
+	@property
+	def has_game_cache(self) -> bool:
+		"""Whether or not there is game cache loaded."""
+		return bool(self._games_data)
 
+	@property
+	def has_anticheat_cache(self) -> bool:
+		"""Whether or not there is anticheat cache loaded."""
+		return bool(self._anti_cheat_data)
 
-def read_game_cache(invalidate_cache: bool = True) -> dict[str, list[Any]]:
-	"""Read the game cache and optionally invalidate it.
+	def get_game_data(self, app_id: str) -> Game | None:
+		"""Get game data from app ID.
 
-	Args:
-		invalidate_cache (bool, optional): Whether or not to invalidate the cache before reading it. Defaults to True.
+		Args:
+			app_id (str): The game's app ID.
 
-	Returns:
-		dict[str, dict[str, str]]: The dict of game cache.
-	"""
-	if invalidate_cache:
-		invalidate_game_cache()
+		Returns:
+			Game | None: The game data if exists. If not, None.
+		"""
+		return self._games_data.get(app_id, None)
 
-	try:
-		data = json.loads(CACHE_PATH.read_text())
-	except Exception:
-		return {}
+	def get_anticheat_data(self, app_id: str) -> AntiCheatData | None:
+		"""Get anticheat data from app ID.
 
-	game_data: dict[str, Any] = {}
+		Args:
+			app_id (str): The game's app ID.
 
-	if 'games' in data:
-		game_data['games'] = [
-			Game(
-				name=game['name'],
-				rating=game['rating'],
-				playtime=game['playtime'],
-				app_id=app_id,
-			)
-			for app_id, game in data['games'].items()
-		]
+		Returns:
+			AntiCheatData | None: The game anticheat data if exists. If not, None.
+		"""
+		return self._anti_cheat_data.get(app_id, None)
 
-	if 'anticheat' in data:
-		game_data['anticheat'] = [
-			AntiCheatData(app_id=app_id, status=AntiCheatStatus(acstatus))
-			for app_id, acstatus in data['anticheat']['data'].items()
-		]
+	def write_cache_file(self) -> Self:
+		"""Serialize data and write the cache file to the disk.
 
-	return game_data
+		Returns:
+			Self: self.
+		"""
+		serialized_data = {
+			'game_cache': self._serialize_game_data(),
+			'anticheat_cache': self._serialize_anti_cheat_data(),
+		}
 
+		CACHE_PATH.write_text(json.dumps(serialized_data))
+		return self
 
-def invalidate_game_cache():
-	"""Find cache entires that are older than 7 days and remove them."""
-	try:
-		cache = json.loads(CACHE_PATH.read_text())
-	except Exception:
-		CACHE_PATH.unlink(missing_ok=True)
-		return
+	def load_cache(self, prune=True) -> Self:
+		"""Load and deserialize the cache.
 
-	if 'games' in cache:
-		for app_id, data in cache['games'].items():
+		Args:
+			prune (bool, optional): Whether or not to prune old cache entries. Defaults to True.
+
+		Returns:
+			Self: self.
+		"""
+		if prune:
+			self.prune_cache()
+
+		try:
+			data = json.loads(CACHE_PATH.read_text())
+		except Exception:
+			return self
+
+		if 'game_cache' in data:
+			self._games_data = {
+				app_id: Game(
+					game_cache['name'],
+					rating=game_cache['rating'],
+					playtime=game_cache['playtime'],
+					app_id=app_id,
+				)
+				for app_id, game_cache in data['game_cache'].items()
+			}
+
+		if 'anticheat_cache' in data:
+			self._anti_cheat_data = {
+				app_id: AntiCheatData(app_id=app_id, status=AntiCheatStatus(status))
+				for app_id, status in data['anticheat_cache']['data'].items()
+			}
+
+		return self
+
+	def update_cache(
+		self,
+		game_list: list[Game] | None = None,
+		anti_cheat_list: list[AntiCheatData] | None = None,
+	) -> Self:
+		"""Update the cache file with new game and anticheat data.
+
+		Args:
+			game_list (list[Game] | None, optional): List of new game data. Defaults to None.
+			anti_cheat_list (list[AntiCheatData] | None, optional): List of new anticheat data. Defaults to None.
+
+		Returns:
+			Self: self.
+		"""
+		self.load_cache()
+
+		if game_list:
+			for game in game_list:
+				self._games_data[game.app_id] = game
+
+		if anti_cheat_list:
+			for ac in anti_cheat_list:
+				self._anti_cheat_data[ac.app_id] = ac
+
+		self.write_cache_file()
+		return self
+
+	def prune_cache(self) -> Self:
+		"""Remove the old entries from the cache file.
+
+		Returns:
+			Self: self.
+		"""
+		try:
+			data = json.loads(CACHE_PATH.read_text())
+		except Exception:
+			return self
+
+		if 'game_cache' in data:
+			for app_id, val in data['game_cache'].items():
+				try:
+					parsed_date = datetime.strptime(val['timestamp'], TIMESTAMP_FORMAT)
+					if (datetime.now() - parsed_date).days > CACHE_INVALIDATION_DAYS:
+						# cache is too old, delete game
+						del data[app_id]
+
+				except ValueError:
+					# invalid datetime format
+					del data[app_id]
+
+		if 'anticheat_cache' in data:
 			try:
-				parsed_date = datetime.strptime(data['timestamp'], TIMESTAMP_FORMAT)
-				if (datetime.now() - parsed_date).days > 7:
+				parsed_date = datetime.strptime(
+					data['anticheat_cache']['timestamp'], TIMESTAMP_FORMAT
+				)
+				if (datetime.now() - parsed_date).days > CACHE_INVALIDATION_DAYS:
 					# cache is too old, delete game
-					del cache[app_id]
+					del data['anticheat_cache']
 
 			except ValueError:
 				# invalid datetime format
-				del cache[app_id]
+				del data['anticheat_cache']
 
-	if 'anticheat' in cache:
-		parsed_date = datetime.strptime(
-			cache['anticheat']['timestamp'], TIMESTAMP_FORMAT
-		)
-		if (datetime.now() - parsed_date).days > 7:
-			# cache is too old, delete data
-			del cache['anticheat']
+		CACHE_PATH.write_text(json.dumps(data))
 
-	CACHE_PATH.write_text(json.dumps(cache))
+		return self

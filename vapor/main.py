@@ -11,7 +11,6 @@ from textual.widgets import Button, DataTable, Header, Input, Label
 from vapor import argument_handler
 from vapor.api_interface import (
 	get_anti_cheat_data,
-	get_item_from_appid,
 	get_steam_user_data,
 )
 from vapor.config_handler import read_steam_api_key, write_steam_api_key
@@ -80,7 +79,7 @@ class SteamApp(App):
 			write_steam_api_key(api_key.value)
 
 			# fetch anti-cheat data
-			ac_data = await get_anti_cheat_data()
+			cache = await get_anti_cheat_data()
 
 			# parse id input to add URL compatibility
 			parsed_url = urlparse(id.value)
@@ -96,10 +95,8 @@ class SteamApp(App):
 
 			# Add games and ratings to the DataTable
 			for game in user_data.game_ratings:
-				if ac_data:
-					game_ac: AntiCheatData | None = get_item_from_appid(
-						ac_data, game.app_id
-					)
+				if cache:
+					game_ac = cache.get_anticheat_data(game.app_id)
 					if not game_ac:
 						game_ac = AntiCheatData('', AntiCheatStatus.BLANK)
 				else:

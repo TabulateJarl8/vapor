@@ -1,9 +1,9 @@
 import json
-from typing import Any, Iterable, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 import aiohttp
+from vapor.cache_handler import Cache
 
-from vapor import cache_handler
 from vapor.data_structures import (
 	RATING_DICT,
 	AntiCheatData,
@@ -21,20 +21,6 @@ class HasAppID(Protocol):
 
 
 T = TypeVar('T', bound=HasAppID)
-
-
-def get_item_from_appid(iterable: Iterable[T], app_id: str) -> T | None:
-	"""Get an item from a list that has a certain app id.
-
-	Args:
-		iterable (Iterable[T]): The iterable to search.
-		app_id (str): The app id to search for.
-
-	Returns:
-		T | None: The item if found. If not, None.
-	"""
-	return next((game for game in iterable if game.app_id == app_id), None)
-
 
 async def get(session: aiohttp.ClientSession, url: str) -> Response:
 	"""Async get request for fetching web content.
@@ -75,15 +61,15 @@ async def check_game_is_native(app_id: str) -> bool:
 		return False
 
 
-async def get_anti_cheat_data() -> list[AntiCheatData] | None:
+async def get_anti_cheat_data() -> Cache | None:
 	"""Get's the anti-cheat data from cache. If expired, it will fetch new data and write that to cache.
 
 	Returns:
-		list[AntiCheatData] | None: The list of game anti-cheat data.
+		Cache | None: The cache containing anti-cheat data.
 	"""
-	cache = cache_handler.read_game_cache()
-	if 'anticheat' in cache:
-		return cache['anticheat']
+	cache = Cache().load_cache()
+	if cache.has_anticheat_cache:
+		return cache
 
 	async with aiohttp.ClientSession() as session:
 		data = await get(
@@ -104,23 +90,23 @@ async def get_anti_cheat_data() -> list[AntiCheatData] | None:
 			if 'steam' in game['storeIds']
 		]
 
-		cache_handler.update_game_cache(anti_cheat_data=deserialized_data)
+		cache.update_cache(anti_cheat_list=deserialized_data)
 
-		return deserialized_data
+		return cache
 
 
-async def get_game_average_rating(app_id: str, cache: dict[str, list[Any]]) -> str:
+async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	"""Get the average game rating from ProtonDB.
 
 	Args:
 		id (str): The game ID.
-		cache (dict[str, dict[str, str]]): The game cache. Can be an empty dict if no cache is wanted.
+		cache (Cache): The game cache.
 
 	Returns:
 		str: A text rating from ProtonDB. gold, bronze, silver, etc.
 	"""
-	if 'games' in cache:
-		game: Game | None = get_item_from_appid(cache['games'], app_id)
+	if cache.has_game_cache:
+		game = cache.get_game_data(app_id)
 		if game is not None:
 			return game.rating
 
@@ -192,7 +178,7 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		except InvalidIDError:
 			pass
 
-	cache = cache_handler.read_game_cache()
+	cache = Cache().load_cache()
 
 	async with aiohttp.ClientSession() as session:
 		data = await get(
@@ -222,11 +208,11 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		# this ensures that the timestamps of those games don't get updated
 		game_ratings_copy = game_ratings.copy()
 		for game in game_ratings_copy:
-			if game.app_id in cache:
+			if cache.get_game_data(game.app_id) is not None:
 				game_ratings_copy.remove(game)
 
 		# update the game cache
-		cache_handler.update_game_cache(game_ratings)
+		cache.update_cache(game_list=game_ratings)
 
 		# compute user average
 		game_rating_nums = [RATING_DICT[game.rating][0] for game in game_ratings]
