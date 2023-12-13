@@ -2,8 +2,8 @@ import json
 from typing import Protocol, TypeVar
 
 import aiohttp
-from vapor.cache_handler import Cache
 
+from vapor.cache_handler import Cache
 from vapor.data_structures import (
 	RATING_DICT,
 	AntiCheatData,
@@ -21,6 +21,7 @@ class HasAppID(Protocol):
 
 
 T = TypeVar('T', bound=HasAppID)
+
 
 async def get(session: aiohttp.ClientSession, url: str) -> Response:
 	"""Async get request for fetching web content.

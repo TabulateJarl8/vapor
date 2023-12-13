@@ -16,8 +16,9 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class Cache:
 	def __init__(self):
-		self._games_data: dict[str, Game] = {}
+		self._games_data: dict[str, tuple[Game, str]] = {}
 		self._anti_cheat_data: dict[str, AntiCheatData] = {}
+		self._anti_cheat_timestamp: str = ''
 
 	def _serialize_game_data(self) -> dict:
 		"""Serialize the game data into a valid JSON dict.
@@ -27,10 +28,10 @@ class Cache:
 		"""
 		return {
 			app_id: {
-				'name': game.name,
-				'rating': game.rating,
-				'playtime': game.playtime,
-				'timestamp': datetime.now().strftime(TIMESTAMP_FORMAT),
+				'name': game[0].name,
+				'rating': game[0].rating,
+				'playtime': game[0].playtime,
+				'timestamp': game[1],
 			}
 			for app_id, game in self._games_data.items()
 		}
@@ -46,7 +47,7 @@ class Cache:
 				app_id: ac_data.status.value
 				for app_id, ac_data in self._anti_cheat_data.items()
 			},
-			'timestamp': datetime.now().strftime(TIMESTAMP_FORMAT)
+			'timestamp': self._anti_cheat_timestamp,
 		}
 
 	@property
@@ -68,7 +69,11 @@ class Cache:
 		Returns:
 			Game | None: The game data if exists. If not, None.
 		"""
-		return self._games_data.get(app_id, None)
+		data = self._games_data.get(app_id, None)
+		if data is not None:
+			return data[0]
+
+		return None
 
 	def get_anticheat_data(self, app_id: str) -> AntiCheatData | None:
 		"""Get anticheat data from app ID.
@@ -79,21 +84,11 @@ class Cache:
 		Returns:
 			AntiCheatData | None: The game anticheat data if exists. If not, None.
 		"""
-		return self._anti_cheat_data.get(app_id, None)
+		data = self._anti_cheat_data.get(app_id, None)
+		if data is not None:
+			return data
 
-	def write_cache_file(self) -> Self:
-		"""Serialize data and write the cache file to the disk.
-
-		Returns:
-			Self: self.
-		"""
-		serialized_data = {
-			'game_cache': self._serialize_game_data(),
-			'anticheat_cache': self._serialize_anti_cheat_data(),
-		}
-
-		CACHE_PATH.write_text(json.dumps(serialized_data))
-		return self
+		return None
 
 	def load_cache(self, prune=True) -> Self:
 		"""Load and deserialize the cache.
@@ -114,11 +109,14 @@ class Cache:
 
 		if 'game_cache' in data:
 			self._games_data = {
-				app_id: Game(
-					game_cache['name'],
-					rating=game_cache['rating'],
-					playtime=game_cache['playtime'],
-					app_id=app_id,
+				app_id: (
+					Game(
+						game_cache['name'],
+						rating=game_cache['rating'],
+						playtime=game_cache['playtime'],
+						app_id=app_id,
+					),
+					game_cache['timestamp'],
 				)
 				for app_id, game_cache in data['game_cache'].items()
 			}
@@ -128,6 +126,7 @@ class Cache:
 				app_id: AntiCheatData(app_id=app_id, status=AntiCheatStatus(status))
 				for app_id, status in data['anticheat_cache']['data'].items()
 			}
+			self._anti_cheat_timestamp = data['anticheat_cache']['timestamp']
 
 		return self
 
@@ -149,13 +148,29 @@ class Cache:
 
 		if game_list:
 			for game in game_list:
-				self._games_data[game.app_id] = game
+				if game.app_id not in self._games_data:
+					timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
+				else:
+					timestamp = self._games_data[game.app_id][1]
+
+				self._games_data[game.app_id] = (
+					game,
+					timestamp,
+				)
 
 		if anti_cheat_list:
 			for ac in anti_cheat_list:
 				self._anti_cheat_data[ac.app_id] = ac
 
-		self.write_cache_file()
+			self._anti_cheat_timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
+
+		serialized_data = {
+			'game_cache': self._serialize_game_data(),
+			'anticheat_cache': self._serialize_anti_cheat_data(),
+		}
+
+		CACHE_PATH.write_text(json.dumps(serialized_data))
+
 		return self
 
 	def prune_cache(self) -> Self:
@@ -170,16 +185,17 @@ class Cache:
 			return self
 
 		if 'game_cache' in data:
-			for app_id, val in data['game_cache'].items():
+			# cast this to a list to be able to modify while iterating
+			for app_id, val in list(data['game_cache'].items()):
 				try:
 					parsed_date = datetime.strptime(val['timestamp'], TIMESTAMP_FORMAT)
 					if (datetime.now() - parsed_date).days > CACHE_INVALIDATION_DAYS:
 						# cache is too old, delete game
-						del data[app_id]
+						del data['game_cache'][app_id]
 
 				except ValueError:
 					# invalid datetime format
-					del data[app_id]
+					del data['game_cache'][app_id]
 
 		if 'anticheat_cache' in data:
 			try:
