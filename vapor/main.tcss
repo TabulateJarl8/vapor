@@ -26,3 +26,21 @@ DataTable {
 #user-rating {
 	padding-top: 2;
 }
+
+PrivateAccountScreen {
+	align: center middle;
+}
+
+
+#dialog {
+	align: center middle;
+	padding: 1;
+	width: 50%;
+	height: 55%;
+	border: thick $background 80%;
+	background: $surface;
+}
+
+#acct-info {
+	padding-bottom: 1;
+}

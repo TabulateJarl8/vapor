@@ -5,6 +5,7 @@ from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.containers import Center
+from textual.screen import ModalScreen
 from textual.validation import Regex
 from textual.widgets import Button, DataTable, Header, Input, Label
 
@@ -23,11 +24,24 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
+class PrivateAccountScreen(ModalScreen):
+	def compose(self) -> ComposeResult:
+		yield Center(
+			Label(PRIVATE_ACCOUNT_HELP_MESSAGE, id='acct-info'),
+			Button('Close', variant='error', id='close-acct-screen'),
+			id='dialog',
+		)
+
+	def on_button_pressed(self) -> None:
+		self.dismiss()
+
+
 class SteamApp(App):
 	CSS_PATH = 'main.tcss'
 	TITLE = 'Steam Profile Proton Compatibility Checker'
 
 	def compose(self) -> ComposeResult:
+		self.show_account_help_dialog = False
 		yield Header()
 		yield Center(
 			Input(
@@ -137,12 +151,7 @@ class SteamApp(App):
 		except UnauthorizedError:
 			self.notify('Invalid Steam API Key', title='Error', severity='error')
 		except PrivateAccountError:
-			self.notify(
-				PRIVATE_ACCOUNT_HELP_MESSAGE,
-				title='Error',
-				severity='error',
-				timeout=15.0,
-			)
+			self.show_account_help_dialog = True
 		finally:
 			# re-enable Input widgets
 			for item in self.query(Input):
@@ -155,6 +164,10 @@ class SteamApp(App):
 			# set table as not loading
 			table = self.query_one(DataTable)
 			table.set_loading(loading=False)
+
+			if self.show_account_help_dialog:
+				self.show_account_help_dialog = False
+				self.push_screen(PrivateAccountScreen())
 
 
 if __name__ == '__main__':
