@@ -4,17 +4,27 @@ from urllib.parse import urlparse
 from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
-from textual.containers import Center
-from textual.screen import ModalScreen
+from textual.containers import Center, Container, Horizontal, VerticalScroll
+from textual.screen import ModalScreen, Screen
 from textual.validation import Regex
-from textual.widgets import Button, DataTable, Header, Input, Label
+from textual.widgets import (
+	Button,
+	DataTable,
+	Footer,
+	Header,
+	Input,
+	Label,
+	Markdown,
+	Static,
+	Switch,
+)
 
 from vapor import argument_handler
 from vapor.api_interface import (
 	get_anti_cheat_data,
 	get_steam_user_data,
 )
-from vapor.config_handler import read_steam_api_key, write_steam_api_key
+from vapor.config_handler import read_config, write_config
 from vapor.data_structures import (
 	PRIVATE_ACCOUNT_HELP_MESSAGE,
 	RATING_DICT,
@@ -22,6 +32,34 @@ from vapor.data_structures import (
 	AntiCheatStatus,
 )
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
+
+
+class SettingsScreen(Screen):
+	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
+
+	def compose(self) -> ComposeResult:
+		with Container(id='content-container'):
+			yield Markdown('# Settings', classes='heading')
+
+			with VerticalScroll():
+				yield Horizontal(
+					Static('Preserve Profile URL Input Value:      ', classes='label'),
+					Switch(
+						value=read_config('preserve-user-id') == 'true',
+						id='preserve-user-id',
+					),
+					classes='container',
+				)
+
+		yield Footer()
+
+	def on_mount(self) -> None:
+		if not read_config('preserve-user-id'):
+			write_config('preserve-user-id', 'true')
+
+	@on(Switch.Changed)
+	def on_setting_changed(self, event: Switch.Changed):
+		write_config(event.switch.id, str(event.value).lower())  # type: ignore
 
 
 class PrivateAccountScreen(ModalScreen):
@@ -39,32 +77,40 @@ class PrivateAccountScreen(ModalScreen):
 class SteamApp(App):
 	CSS_PATH = 'main.tcss'
 	TITLE = 'Steam Profile Proton Compatibility Checker'
+	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
 
 	def compose(self) -> ComposeResult:
 		self.show_account_help_dialog = False
 		yield Header()
-		yield Center(
-			Input(
-				value=read_steam_api_key(),
-				placeholder='Steam API Key',
-				id='api-key',
-				validators=Regex(r'[A-Z0-9]{32}'),
+		yield Container(
+			Center(
+				Input(
+					value=read_config('steam-api-key'),
+					placeholder='Steam API Key',
+					id='api-key',
+					validators=Regex(r'[A-Z0-9]{32}'),
+				),
+				Input(
+					placeholder='Profile URL or Steam ID',
+					value=read_config('user-id')
+					if read_config('preserve-user-id') == 'true'
+					else '',
+					id='user-id',
+					validators=Regex(r'.+'),
+				),
+				id='input-container',
 			),
-			Input(
-				placeholder='Profile URL or Steam ID',
-				id='user-id',
-				validators=Regex(r'.+'),
+			Center(Button('Check Profile', variant='primary')),
+			Center(
+				Label(
+					Text.assemble('User Average Rating: ', ('N/A', 'magenta')),
+					id='user-rating',
+				)
 			),
-			id='input-container',
+			DataTable(zebra_stripes=True),
+			id='body',
 		)
-		yield Center(Button('Check Profile', variant='primary'))
-		yield Center(
-			Label(
-				Text.assemble('User Average Rating: ', ('N/A', 'magenta')),
-				id='user-rating',
-			)
-		)
-		yield DataTable(zebra_stripes=True)
+		yield Footer()
 
 	def on_mount(self) -> None:
 		# add nothing to table so that it shows up
@@ -73,6 +119,8 @@ class SteamApp(App):
 
 		for _ in range(12):
 			table.add_row('', '')
+
+		self.install_screen(SettingsScreen(), name='settings')
 
 	@work(exclusive=True)
 	@on(Button.Pressed)
@@ -99,10 +147,7 @@ class SteamApp(App):
 			api_key: Input = self.query_one('#api-key')  # type: ignore
 			id: Input = self.query_one('#user-id')  # type: ignore
 
-			write_steam_api_key(api_key.value)
-
-			# fetch anti-cheat data
-			cache = await get_anti_cheat_data()
+			write_config('steam-api-key', api_key.value)
 
 			# parse id input to add URL compatibility
 			parsed_url = urlparse(id.value)
@@ -111,6 +156,12 @@ class SteamApp(App):
 			):
 				id.value = Path(parsed_url.path).name
 				id.refresh()
+
+			if read_config('preserve-user-id') == 'true':
+				write_config('user-id', id.value)
+
+			# fetch anti-cheat data
+			cache = await get_anti_cheat_data()
 
 			# Fetch user data
 			user_data = await get_steam_user_data(api_key.value, id.value)

@@ -1,4 +1,4 @@
-Screen {
+#body {
 	padding: 2;
 }
 
@@ -43,4 +43,28 @@ PrivateAccountScreen {
 
 #acct-info {
 	padding-bottom: 1;
+}
+
+Screen {
+	align: center middle;
+}
+
+#content-container {
+	width: 50%;
+	height: auto;
+	max-height: 100%;
+	padding: 1 2;
+	background: $panel;
+	color: $text;
+	border: $secondary tall;
+}
+
+#content-container * {
+	align: center top;
+}
+
+.label {
+	height: 3;
+	content-align: center middle;
+	width: auto;
 }

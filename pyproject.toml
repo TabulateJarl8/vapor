@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vapor-steam"
-version = "1.3.2"
+version = "1.4.0"
 description = "TUI program to check the ProtonDB compatibility of all the games of a Steam user."
 authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
 license = "GPLv3"
@@ -78,8 +78,6 @@ extend-select = [
 	"ARG",
 	# flake8-use-pathlib
 	"PTH",
-	# flake8-todos
-	"TD",
 	# eradicate
 	"ERA",
 	# perflint
