@@ -81,7 +81,11 @@ async def get_anti_cheat_data() -> Cache | None:
 		if data.status != 200:
 			return None
 
-		anti_cheat_data = json.loads(data.data)
+		try:
+			anti_cheat_data = json.loads(data.data)
+		except json.JSONDecodeError:
+			return None
+
 		deserialized_data = [
 			AntiCheatData(
 				app_id=game['storeIds']['steam'],
