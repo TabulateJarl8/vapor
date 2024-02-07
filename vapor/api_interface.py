@@ -1,5 +1,5 @@
 import json
-from typing import Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import aiohttp
 
@@ -23,17 +23,19 @@ class HasAppID(Protocol):
 T = TypeVar('T', bound=HasAppID)
 
 
-async def get(session: aiohttp.ClientSession, url: str) -> Response:
+async def async_get(url: str, **session_kwargs: Any) -> Response:
 	"""Async get request for fetching web content.
 
 	Args:
-		session (aiohttp.ClientSession): an aiohttp session.
 		url (str): The URL to fetch data from.
+		**session_kwargs (Any): arguments to pass to aiohttp.ClientSession
 
 	Returns:
 		Response: A Response object containing the body and status code.
 	"""
-	async with session.get(url) as response:
+	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(
+		url
+	) as response:
 		return Response(data=await response.text(), status=response.status)
 
 
@@ -46,20 +48,18 @@ async def check_game_is_native(app_id: str) -> bool:
 	Returns:
 		bool: Whether or not the game has native Linux support.
 	"""
-	async with aiohttp.ClientSession() as session:
-		data = await get(
-			session,
-			f'https://store.steampowered.com/api/appdetails?appids={app_id}&filters=platforms',
-		)
-		if data.status != 200:
-			return False
-
-		json_data = json.loads(data.data)[str(app_id)]
-
-		if json_data.get('success', False):
-			return json_data['data']['platforms'].get('linux', False)
-
+	data = await async_get(
+		f'https://store.steampowered.com/api/appdetails?appids={app_id}&filters=platforms',
+	)
+	if data.status != 200:
 		return False
+
+	json_data = json.loads(data.data)[str(app_id)]
+
+	if json_data.get('success', False):
+		return json_data['data']['platforms'].get('linux', False)
+
+	return False
 
 
 async def get_anti_cheat_data() -> Cache | None:
@@ -72,32 +72,30 @@ async def get_anti_cheat_data() -> Cache | None:
 	if cache.has_anticheat_cache:
 		return cache
 
-	async with aiohttp.ClientSession() as session:
-		data = await get(
-			session,
-			'https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json',
+	data = await async_get(
+		'https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json',
+	)
+
+	if data.status != 200:
+		return None
+
+	try:
+		anti_cheat_data = json.loads(data.data)
+	except json.JSONDecodeError:
+		return None
+
+	deserialized_data = [
+		AntiCheatData(
+			app_id=game['storeIds']['steam'],
+			status=AntiCheatStatus(game['status']),
 		)
+		for game in anti_cheat_data
+		if 'steam' in game['storeIds']
+	]
 
-		if data.status != 200:
-			return None
+	cache.update_cache(anti_cheat_list=deserialized_data)
 
-		try:
-			anti_cheat_data = json.loads(data.data)
-		except json.JSONDecodeError:
-			return None
-
-		deserialized_data = [
-			AntiCheatData(
-				app_id=game['storeIds']['steam'],
-				status=AntiCheatStatus(game['status']),
-			)
-			for game in anti_cheat_data
-			if 'steam' in game['storeIds']
-		]
-
-		cache.update_cache(anti_cheat_list=deserialized_data)
-
-		return cache
+	return cache
 
 
 async def get_game_average_rating(app_id: str, cache: Cache) -> str:
@@ -118,16 +116,15 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	if await check_game_is_native(app_id):
 		return 'native'
 
-	async with aiohttp.ClientSession() as session:
-		data = await get(
-			session, f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json'
-		)
-		if data.status != 200:
-			return 'pending'
+	data = await async_get(
+		f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json'
+	)
+	if data.status != 200:
+		return 'pending'
 
-		json_data = json.loads(data.data)
+	json_data = json.loads(data.data)
 
-		return json_data.get('tier', 'pending')
+	return json_data.get('tier', 'pending')
 
 
 async def resolve_vanity_name(api_key: str, name: str) -> str:
@@ -144,20 +141,18 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 	Returns:
 		str: The Steam ID of the user.
 	"""
-	async with aiohttp.ClientSession() as session:
-		data = await get(
-			session,
-			f'https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={api_key}&vanityurl={name}',
-		)
+	data = await async_get(
+		f'https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={api_key}&vanityurl={name}',
+	)
 
-		if data.status == 403:
-			raise UnauthorizedError
+	if data.status == 403:
+		raise UnauthorizedError
 
-		user_data = json.loads(data.data)
-		if user_data['response']['success'] != 1:
-			raise InvalidIDError
+	user_data = json.loads(data.data)
+	if user_data['response']['success'] != 1:
+		raise InvalidIDError
 
-		return user_data['response']['steamid']
+	return user_data['response']['steamid']
 
 
 async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
@@ -185,49 +180,47 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 
 	cache = Cache().load_cache()
 
-	async with aiohttp.ClientSession() as session:
-		data = await get(
-			session,
-			f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={id}&format=json&include_appinfo=1&include_played_free_games=1',
+	data = await async_get(
+		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={id}&format=json&include_appinfo=1&include_played_free_games=1',
+	)
+	if data.status == 400:
+		raise InvalidIDError
+	if data.status == 401:
+		raise UnauthorizedError
+
+	data = json.loads(data.data)['response']
+	if 'games' not in data:
+		raise PrivateAccountError
+
+	games = data['games']
+	game_ratings = [
+		Game(
+			name=game['name'],
+			rating=await get_game_average_rating(str(game['appid']), cache),
+			playtime=game['playtime_forever'],
+			app_id=str(game['appid']),
 		)
-		if data.status == 400:
-			raise InvalidIDError
-		if data.status == 401:
-			raise UnauthorizedError
+		for game in games
+	]
 
-		data = json.loads(data.data)['response']
-		if 'games' not in data:
-			raise PrivateAccountError
+	game_ratings.sort(key=lambda x: x.playtime)
+	game_ratings.reverse()
 
-		games = data['games']
-		game_ratings = [
-			Game(
-				name=game['name'],
-				rating=await get_game_average_rating(str(game['appid']), cache),
-				playtime=game['playtime_forever'],
-				app_id=str(game['appid']),
-			)
-			for game in games
-		]
+	# remove all of the games that we used that were already cached
+	# this ensures that the timestamps of those games don't get updated
+	game_ratings_copy = game_ratings.copy()
+	for game in game_ratings_copy:
+		if cache.get_game_data(game.app_id) is not None:
+			game_ratings_copy.remove(game)
 
-		game_ratings.sort(key=lambda x: x.playtime)
-		game_ratings.reverse()
+	# update the game cache
+	cache.update_cache(game_list=game_ratings)
 
-		# remove all of the games that we used that were already cached
-		# this ensures that the timestamps of those games don't get updated
-		game_ratings_copy = game_ratings.copy()
-		for game in game_ratings_copy:
-			if cache.get_game_data(game.app_id) is not None:
-				game_ratings_copy.remove(game)
+	# compute user average
+	game_rating_nums = [RATING_DICT[game.rating][0] for game in game_ratings]
+	user_average = round(sum(game_rating_nums) / len(game_rating_nums))
+	user_average_text = [
+		key for key, value in RATING_DICT.items() if value[0] == user_average
+	][0]
 
-		# update the game cache
-		cache.update_cache(game_list=game_ratings)
-
-		# compute user average
-		game_rating_nums = [RATING_DICT[game.rating][0] for game in game_ratings]
-		user_average = round(sum(game_rating_nums) / len(game_rating_nums))
-		user_average_text = [
-			key for key, value in RATING_DICT.items() if value[0] == user_average
-		][0]
-
-		return SteamUserData(game_ratings=game_ratings, user_average=user_average_text)
+	return SteamUserData(game_ratings=game_ratings, user_average=user_average_text)
