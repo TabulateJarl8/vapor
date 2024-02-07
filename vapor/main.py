@@ -24,7 +24,7 @@ from vapor.api_interface import (
 	get_anti_cheat_data,
 	get_steam_user_data,
 )
-from vapor.config_handler import read_config, write_config
+from vapor.config_handler import Config
 from vapor.data_structures import (
 	PRIVATE_ACCOUNT_HELP_MESSAGE,
 	RATING_DICT,
@@ -37,6 +37,10 @@ from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedEr
 class SettingsScreen(Screen):
 	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
 
+	def __init__(self, config):
+		self.config = config
+		super().__init__()
+
 	def compose(self) -> ComposeResult:
 		with Container(id='content-container'):
 			yield Markdown('# Settings', classes='heading')
@@ -45,7 +49,7 @@ class SettingsScreen(Screen):
 				yield Horizontal(
 					Static('Preserve Profile URL Input Value:      ', classes='label'),
 					Switch(
-						value=read_config('preserve-user-id') == 'true',
+						value=self.config.get_value('preserve-user-id') == 'true',
 						id='preserve-user-id',
 					),
 					classes='container',
@@ -79,21 +83,25 @@ class SteamApp(App):
 	TITLE = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
 
+	def __init__(self):
+		self.config = Config().read_config()
+		super().__init__()
+
 	def compose(self) -> ComposeResult:
 		self.show_account_help_dialog = False
 		yield Header()
 		yield Container(
 			Center(
 				Input(
-					value=read_config('steam-api-key'),
+					value=self.config.get_value('steam-api-key'),
 					placeholder='Steam API Key',
 					id='api-key',
 					validators=Regex(r'[A-Z0-9]{32}'),
 				),
 				Input(
 					placeholder='Profile URL or Steam ID',
-					value=read_config('user-id')
-					if read_config('preserve-user-id') == 'true'
+					value=self.config.get_value('user-id')
+					if self.config.get_value('preserve-user-id') == 'true'
 					else '',
 					id='user-id',
 					validators=Regex(r'.+'),
@@ -147,7 +155,7 @@ class SteamApp(App):
 			api_key: Input = self.query_one('#api-key')  # type: ignore
 			id: Input = self.query_one('#user-id')  # type: ignore
 
-			write_config('steam-api-key', api_key.value)
+			self.config.set_value('steam-api-key', api_key.value)
 
 			# parse id input to add URL compatibility
 			parsed_url = urlparse(id.value)
@@ -157,8 +165,8 @@ class SteamApp(App):
 				id.value = Path(parsed_url.path).name
 				id.refresh()
 
-			if read_config('preserve-user-id') == 'true':
-				write_config('user-id', id.value)
+			if self.config.get_value('preserve-user-id') == 'true':
+				self.config.set_value('user-id', id.value)
 
 			# fetch anti-cheat data
 			cache = await get_anti_cheat_data()
@@ -204,6 +212,8 @@ class SteamApp(App):
 		except PrivateAccountError:
 			self.show_account_help_dialog = True
 		finally:
+			self.config.write_config()
+
 			# re-enable Input widgets
 			for item in self.query(Input):
 				item.disabled = False

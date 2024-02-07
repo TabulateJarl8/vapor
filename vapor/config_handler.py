@@ -1,5 +1,5 @@
 from configparser import ConfigParser
-from typing import Optional
+from typing import Optional, Self
 
 from vapor.data_structures import CONFIG_DIR
 from vapor.exceptions import ConfigFileNotReadError, ConfigReadError, ConfigWriteError
@@ -13,7 +13,7 @@ class Config:
 		self._config_path = CONFIG_PATH
 		self._config_data: Optional[ConfigParser] = None
 
-	def set_value(self, key: str, value: str):
+	def set_value(self, key: str, value: str) -> Self:
 		"""Sets a value in the config file.
 
 		This does not write to the actual config file, just updates it in memory.
@@ -21,6 +21,9 @@ class Config:
 		Args:
 			key (str): The key to write.
 			value (str): The value to write.
+
+		Returns:
+			Self
 
 		Raises:
 			ConfigFileNotReadError: If a config value is set without the config being read.
@@ -33,10 +36,14 @@ class Config:
 
 		self._config_data.set('vapor', key, value)
 
+		return self
 
-	def write_config(self):	
+	def write_config(self) -> Self:
 		"""Writes the config to a file.
-		
+
+		Returns:
+			Self
+
 		Raises:
 			ConfigFileNotReadError: If the config file was never read.
 			ConfigWriteError: If an error was encountered while writing the file.
@@ -50,9 +57,10 @@ class Config:
 		else:
 			raise ConfigFileNotReadError
 
+		return self
 
-	def read_value(self, key: str) -> str:
-		"""Read a value from the config file if it exists.
+	def get_value(self, key: str) -> str:
+		"""Get a value from the config if it exists.
 
 		Args:
 			key (str): The key to read.
@@ -66,13 +74,18 @@ class Config:
 		if self._config_data is None:
 			return ''
 
-		if 'vapor' in self._config_data.sections() and key in self._config_data.options('vapor'):
+		if 'vapor' in self._config_data.sections() and key in self._config_data.options(
+			'vapor'
+		):
 			return self._config_data.get('vapor', key)
 
 		return ''
 
-	def read_config(self):
+	def read_config(self) -> Self:
 		"""Read the config from the file location.
+
+		Returns:
+			Self
 
 		Raises:
 			ConfigReadError: If an error was encoutnered while reading the file.
@@ -83,3 +96,5 @@ class Config:
 				self._config_data.read(self._config_path)
 		except Exception as e:
 			raise ConfigReadError from e
+
+		return self
