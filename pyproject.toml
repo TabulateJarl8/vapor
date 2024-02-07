@@ -34,6 +34,8 @@ vapor = "vapor.__main__:main"
 [tool.poetry.group.dev.dependencies]
 textual-dev = "^1.2.1"
 ruff = "^0.1.6"
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]

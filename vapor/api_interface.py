@@ -101,12 +101,12 @@ async def get_anti_cheat_data() -> Cache | None:
 	return cache
 
 
-async def parse_anti_cheat_data(data: Dict) -> List[AntiCheatData]:
+async def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
 	"""Parse data from AreWeAntiCheatYet and return a list of
 	AntiCheatData instances.
 
 	Args:
-		data (Dict): The data from AreWeAntiCheatYet
+		data (List[Dict]): The data from AreWeAntiCheatYet
 
 	Returns:
 		List[AntiCheatData]: the anticheat statuses of each game in the given data

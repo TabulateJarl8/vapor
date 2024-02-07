@@ -16,9 +16,13 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class Cache:
 	def __init__(self):
+		self.cache_path = CACHE_PATH
 		self._games_data: Dict[str, Tuple[Game, str]] = {}
 		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
+
+	def __repr__(self):
+		return f"Cache({self.__dict__!r})"
 
 	def _serialize_game_data(self) -> dict:
 		"""Serialize the game data into a valid JSON dict.
@@ -103,7 +107,7 @@ class Cache:
 			self.prune_cache()
 
 		try:
-			data = json.loads(CACHE_PATH.read_text())
+			data = json.loads(self.cache_path.read_text())
 		except Exception:
 			return self
 
@@ -169,7 +173,7 @@ class Cache:
 			'anticheat_cache': self._serialize_anti_cheat_data(),
 		}
 
-		CACHE_PATH.write_text(json.dumps(serialized_data))
+		self.cache_path.write_text(json.dumps(serialized_data))
 
 		return self
 
@@ -180,7 +184,7 @@ class Cache:
 			Self: self.
 		"""
 		try:
-			data = json.loads(CACHE_PATH.read_text())
+			data = json.loads(self.cache_path.read_text())
 		except Exception:
 			return self
 
@@ -210,6 +214,6 @@ class Cache:
 				# invalid datetime format
 				del data['anticheat_cache']
 
-		CACHE_PATH.write_text(json.dumps(data))
+		self.cache_path.write_text(json.dumps(data))
 
 		return self
