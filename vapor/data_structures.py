@@ -72,7 +72,7 @@ class Response(NamedTuple):
 
 
 class Game(NamedTuple):
-	"""A Steam game with ProtonDB info."""
+	"""A Steam game with it's associated ProtonDB info."""
 
 	name: str
 	"""The name of the game."""
@@ -85,7 +85,8 @@ class Game(NamedTuple):
 
 
 class SteamUserData(NamedTuple):
-	"""The data for a steam user."""
+	"""The data for a steam user. Includes a list of games and their respective
+	ProtonDB ratings, as well as the user's average ProtonDB rating."""
 
 	game_ratings: List[Game]
 	"""The user's game ratings from ProtonDB."""

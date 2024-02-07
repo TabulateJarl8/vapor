@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, Protocol, TypeVar
+from typing import Any, Dict, List
 
 import aiohttp
 
@@ -13,14 +13,6 @@ from vapor.data_structures import (
 	SteamUserData,
 )
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
-
-
-# typing classes
-class HasAppID(Protocol):
-	app_id: str
-
-
-T = TypeVar('T', bound=HasAppID)
 
 
 async def async_get(url: str, **session_kwargs: Any) -> Response:
@@ -54,16 +46,34 @@ async def check_game_is_native(app_id: str) -> bool:
 	if data.status != 200:
 		return False
 
-	json_data = json.loads(data.data)[str(app_id)]
+	json_data = json.loads(data.data)
 
-	if json_data.get('success', False):
-		return json_data['data']['platforms'].get('linux', False)
+	return await parse_steam_game_platform_info(json_data, app_id)
 
-	return False
+
+async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
+	"""Parse data from the Steam API and return whether or not the game is
+	native to Linux.
+
+	Args:
+		data (Dict): the data from the Steam API.
+		app_id (str): The App ID of the game
+
+	Returns:
+		bool: Whether or not the game has native Linux support.
+	"""
+	if str(app_id) not in data:
+		return False
+
+	json_data = data[str(app_id)]
+	return json_data.get('success', False) and json_data['data']['platforms'].get(
+		'linux', False
+	)
 
 
 async def get_anti_cheat_data() -> Cache | None:
-	"""Get's the anti-cheat data from cache. If expired, it will fetch new data and write that to cache.
+	"""Get's the anti-cheat data from cache. If expired, it will fetch new
+	data and write that to cache.
 
 	Returns:
 		Cache | None: The cache containing anti-cheat data.
@@ -84,18 +94,31 @@ async def get_anti_cheat_data() -> Cache | None:
 	except json.JSONDecodeError:
 		return None
 
-	deserialized_data = [
-		AntiCheatData(
-			app_id=game['storeIds']['steam'],
-			status=AntiCheatStatus(game['status']),
-		)
-		for game in anti_cheat_data
-		if 'steam' in game['storeIds']
-	]
+	deserialized_data = await parse_anti_cheat_data(anti_cheat_data)
 
 	cache.update_cache(anti_cheat_list=deserialized_data)
 
 	return cache
+
+
+async def parse_anti_cheat_data(data: Dict) -> List[AntiCheatData]:
+	"""Parse data from AreWeAntiCheatYet and return a list of
+	AntiCheatData instances.
+
+	Args:
+		data (Dict): The data from AreWeAntiCheatYet
+
+	Returns:
+		List[AntiCheatData]: the anticheat statuses of each game in the given data
+	"""
+	return [
+		AntiCheatData(
+			app_id=game['storeIds']['steam'],
+			status=AntiCheatStatus(game['status']),
+		)
+		for game in data
+		if 'steam' in game['storeIds']
+	]
 
 
 async def get_game_average_rating(app_id: str, cache: Cache) -> str:
@@ -188,7 +211,24 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 	if data.status == 401:
 		raise UnauthorizedError
 
-	data = json.loads(data.data)['response']
+	data = json.loads(data.data)
+
+	return await parse_steam_user_games(data, cache)
+
+
+async def parse_steam_user_games(data: Dict, cache: Cache) -> SteamUserData:
+	"""Parse user data from the Steam API and return information on their games.
+
+	Args:
+		data (Dict): user data from the Steam API
+		cache (Cache): the loaded Cache file
+
+	Returns:
+		SteamUserData: the user's Steam games and ProtonDB ratings
+	"""
+
+	data = data['response']
+
 	if 'games' not in data:
 		raise PrivateAccountError
 
