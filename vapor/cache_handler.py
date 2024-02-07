@@ -22,7 +22,7 @@ class Cache:
 		self._anti_cheat_timestamp: str = ''
 
 	def __repr__(self):
-		return f"Cache({self.__dict__!r})"
+		return f'Cache({self.__dict__!r})'
 
 	def _serialize_game_data(self) -> dict:
 		"""Serialize the game data into a valid JSON dict.

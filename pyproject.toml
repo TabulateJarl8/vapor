@@ -85,7 +85,7 @@ extend-select = [
 	# perflint
 	"PERF"
 ]
-ignore = ["E501", "E274", "S110", "FBT001", "FBT002", "PERF203"]
+ignore = ["E501", "E274", "S110", "FBT001", "FBT002", "PERF203", "S101"]
 
 [tool.ruff.format]
 quote-style = "single"
