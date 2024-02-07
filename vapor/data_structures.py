@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import NamedTuple
+from typing import Dict, List, NamedTuple
 
 from platformdirs import user_config_path
 
@@ -18,7 +18,7 @@ Please change your Steam profile privacy settings:
 4. Uncheck the Always keep my total playtime private option
 """.strip()
 
-_ANTI_CHEAT_COLORS: dict[str, str] = {
+_ANTI_CHEAT_COLORS: Dict[str, str] = {
 	'Denied': 'red',
 	'Broken': 'dark_orange3',
 	'Planned': 'purple',
@@ -87,13 +87,13 @@ class Game(NamedTuple):
 class SteamUserData(NamedTuple):
 	"""The data for a steam user."""
 
-	game_ratings: list[Game]
+	game_ratings: List[Game]
 	"""The user's game ratings from ProtonDB."""
 	user_average: str
 	"""The user's average ProtonDB rating."""
 
 
-RATING_DICT: dict[str, ProtonDBRating] = {
+RATING_DICT: Dict[str, ProtonDBRating] = {
 	'borked': ProtonDBRating(weight=0, color='red'),
 	'pending': ProtonDBRating(weight=1, color='blue'),
 	'bronze': ProtonDBRating(weight=2, color='#CD7F32'),

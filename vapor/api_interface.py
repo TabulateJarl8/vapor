@@ -1,5 +1,5 @@
 import json
-from typing import Any, Protocol, TypeVar
+from typing import Any, List, Protocol, TypeVar
 
 import aiohttp
 

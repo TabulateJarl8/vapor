@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Self
+from typing import Dict, List, Self, Tuple
 
 from vapor.data_structures import CONFIG_DIR, AntiCheatData, AntiCheatStatus, Game
 
@@ -16,8 +16,8 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class Cache:
 	def __init__(self):
-		self._games_data: dict[str, tuple[Game, str]] = {}
-		self._anti_cheat_data: dict[str, AntiCheatData] = {}
+		self._games_data: Dict[str, Tuple[Game, str]] = {}
+		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
 
 	def _serialize_game_data(self) -> dict:
@@ -132,14 +132,14 @@ class Cache:
 
 	def update_cache(
 		self,
-		game_list: list[Game] | None = None,
-		anti_cheat_list: list[AntiCheatData] | None = None,
+		game_list: List[Game] | None = None,
+		anti_cheat_list: List[AntiCheatData] | None = None,
 	) -> Self:
 		"""Update the cache file with new game and anticheat data.
 
 		Args:
-			game_list (list[Game] | None, optional): List of new game data. Defaults to None.
-			anti_cheat_list (list[AntiCheatData] | None, optional): List of new anticheat data. Defaults to None.
+			game_list (List[Game] | None, optional): List of new game data. Defaults to None.
+			anti_cheat_list (List[AntiCheatData] | None, optional): List of new anticheat data. Defaults to None.
 
 		Returns:
 			Self: self.
