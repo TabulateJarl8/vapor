@@ -17,8 +17,7 @@ def config():
 
 @pytest.mark.asyncio
 async def test_first_startup(config):
-	app = SteamApp()
-	app.config = config
+	app = SteamApp(config)
 	async with app.run_test() as _:
 		assert app.query_one('#api-key').value == ''
 		assert app.query_one('#user-id').value == ''
@@ -27,9 +26,7 @@ async def test_first_startup(config):
 
 @pytest.mark.asyncio
 async def test_invalid_input_data(config):
-	app = SteamApp()
-	config.read_config()
-	app.config = config
+	app = SteamApp(config)
 
 	async with app.run_test() as pilot:
 		await pilot.click('#api-key')
@@ -55,9 +52,7 @@ async def test_invalid_input_data(config):
 
 @pytest.mark.asyncio
 async def test_valid_input_data(config):
-	app = SteamApp()
-	config.read_config()
-	app.config = config
+	app = SteamApp(config)
 
 	async with app.run_test() as pilot:
 		await pilot.click('#api-key')
@@ -83,6 +78,4 @@ async def test_valid_input_data(config):
 
 @pytest.mark.asyncio
 async def test_(config):
-	app = SteamApp()
-	config.read_config()
-	app.config = config
+	app = SteamApp(config)

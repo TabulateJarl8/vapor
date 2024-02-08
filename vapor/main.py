@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urlparse
 
 from rich.text import Text
@@ -85,8 +86,11 @@ class SteamApp(App):
 	TITLE = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
 
-	def __init__(self):
-		self.config = Config().read_config()
+	def __init__(self, custom_config: Optional[Config] = None):
+		if custom_config is None:
+			custom_config = Config()
+
+		self.config = custom_config.read_config()
 		super().__init__()
 
 	def compose(self) -> ComposeResult:
