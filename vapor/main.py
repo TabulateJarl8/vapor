@@ -38,7 +38,7 @@ class SettingsScreen(Screen):
 	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
 
 	def __init__(self, config):
-		self.config = config
+		self.config: Config = config
 		super().__init__()
 
 	def compose(self) -> ComposeResult:
@@ -58,12 +58,14 @@ class SettingsScreen(Screen):
 		yield Footer()
 
 	def on_mount(self) -> None:
-		if not read_config('preserve-user-id'):
-			write_config('preserve-user-id', 'true')
+		if not self.config.get_value('preserve-user-id'):
+			self.config.set_value('preserve-user-id', 'true')
+			self.config.write_config()
 
 	@on(Switch.Changed)
 	def on_setting_changed(self, event: Switch.Changed):
-		write_config(event.switch.id, str(event.value).lower())  # type: ignore
+		self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
+		self.config.write_config()
 
 
 class PrivateAccountScreen(ModalScreen):
@@ -128,7 +130,7 @@ class SteamApp(App):
 		for _ in range(12):
 			table.add_row('', '')
 
-		self.install_screen(SettingsScreen(), name='settings')
+		self.install_screen(SettingsScreen(self.config), name='settings')
 
 	@work(exclusive=True)
 	@on(Button.Pressed)
