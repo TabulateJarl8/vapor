@@ -3,8 +3,10 @@ import pytest
 from vapor.api_interface import (
 	parse_anti_cheat_data,
 	parse_steam_game_platform_info,
+	parse_steam_user_games,
 )
 from vapor.data_structures import AntiCheatStatus, Game
+from vapor.exceptions import PrivateAccountError
 
 STEAM_GAME_DATA = {
 	'123456': {'success': True, 'data': {'platforms': {'linux': True}}},
@@ -57,3 +59,28 @@ async def test_parse_anti_cheat_data():
 	assert result[0].app_id == '123456'
 	assert result[0].status == AntiCheatStatus.DENIED
 	assert result[1].status == AntiCheatStatus.SUPPORTED
+
+
+@pytest.mark.asyncio
+async def test_parse_steam_user_games():
+	# mock function that returns gold as every games rating # noqa: ERA001
+	async def _get_game_rating_func(*_):
+		return 'gold'
+
+	cache = MockCache(has_game=True)
+	result = await parse_steam_user_games(
+		STEAM_USER_GAMES_DATA, cache, _get_game_rating_func
+	)
+	assert len(result.game_ratings) == 2
+	assert result.user_average == 'gold'
+
+
+@pytest.mark.asyncio
+async def test_parse_steam_user_priv_acct():
+	# mock function that returns gold as every games rating # noqa: ERA001
+	async def _get_game_rating_func(*_):
+		return 'gold'
+
+	cache = MockCache(has_game=True)
+	with pytest.raises(PrivateAccountError):
+		await parse_steam_user_games({'response': {}}, cache, _get_game_rating_func)

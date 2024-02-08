@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List
+from typing import Any, Awaitable, Callable, Dict, List
 
 import aiohttp
 
@@ -216,12 +216,19 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 	return await parse_steam_user_games(data, cache)
 
 
-async def parse_steam_user_games(data: Dict, cache: Cache) -> SteamUserData:
+async def parse_steam_user_games(
+	data: Dict,
+	cache: Cache,
+	_get_game_rating_func: Callable[
+		[str, Cache], Awaitable[str]
+	] = get_game_average_rating,
+) -> SteamUserData:
 	"""Parse user data from the Steam API and return information on their games.
 
 	Args:
 		data (Dict): user data from the Steam API
 		cache (Cache): the loaded Cache file
+		_get_game_rating_func: should only be changed in testing
 
 	Returns:
 		SteamUserData: the user's Steam games and ProtonDB ratings
@@ -236,7 +243,7 @@ async def parse_steam_user_games(data: Dict, cache: Cache) -> SteamUserData:
 	game_ratings = [
 		Game(
 			name=game['name'],
-			rating=await get_game_average_rating(str(game['appid']), cache),
+			rating=await _get_game_rating_func(str(game['appid']), cache),
 			playtime=game['playtime_forever'],
 			app_id=str(game['appid']),
 		)
