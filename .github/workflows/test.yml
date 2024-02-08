@@ -70,3 +70,9 @@ jobs:
       # And finally run tests. I'm using pytest and all my pytest config is in my `pyproject.toml`
       # so this line is super-simple. But it could be as complex as you need.
       - run: poetry run pytest
+
+      # check for code style errors
+      - run: poetry run ruff check
+      # disable code format checking until docstrings are sorted out
+      # https://github.com/astral-sh/ruff/issues/8430
+      # - run: poetry run ruff format --check
