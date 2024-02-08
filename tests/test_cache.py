@@ -65,8 +65,16 @@ def cache_data():
 	}
 
 
-@pytest.mark.asyncio
-async def test_load_cache(cache, cache_data):
+def test_cache_repr():
+	assert repr(Cache()) == f'Cache({Cache().__dict__})'
+
+
+def test_cache_properties_without_loading(cache):
+	assert not cache.has_game_cache
+	assert not cache.has_anticheat_cache
+
+
+def test_load_cache(cache, cache_data):
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.load_cache(prune=False)
@@ -75,15 +83,56 @@ async def test_load_cache(cache, cache_data):
 		assert cache.has_anticheat_cache
 		assert cache.get_game_data('123456') is not None
 		assert cache.get_anticheat_data('789012') is not None
+		assert cache.get_game_data('0') is None
+		assert cache.get_anticheat_data('0') is None
 
 
-@pytest.mark.asyncio
-async def test_update_cache(cache, cache_data):
+def test_loading_bad_file(cache):
+	cache.cache_path = ''
+
+	cache_before = cache
+	cache.load_cache(prune=False)
+
+	assert cache == cache_before
+
+
+def test_prune_bad_file(cache):
+	cache.cache_path = ''
+
+	cache_before = cache
+	cache.prune_cache()
+
+	assert cache == cache_before
+
+
+def test_invalid_datetimes(cache, cache_data):
+	cache_data['game_cache']['999'] = {
+		'name': 'invalid datetime game',
+		'rating': 'platinum',
+		'playtime': 9,
+		'timestamp': 'this is wrong',
+	}
+
+	cache_data['anticheat_cache']['timestamp'] = 'this is also wrong'
+
+	with io.BytesIO(json.dumps(cache_data).encode()) as f:
+		cache.cache_path = BytesIOPath(f)
+
+		cache.prune_cache()
+
+		f.seek(0)
+		updated_data = json.loads(f.read())
+		assert '999' not in updated_data['game_cache']
+		assert 'anticheat_cache' not in updated_data
+
+
+def test_update_cache(cache, cache_data):
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.update_cache(
 			game_list=[
-				Game(name='Game 3', rating='silver', playtime=200, app_id='654321')
+				Game(name='Game 3', rating='silver', playtime=200, app_id='654321'),
+				Game(name='Game 2', rating='silver', playtime=200, app_id='483'),
 			],
 			anti_cheat_list=[
 				AntiCheatData(app_id='987654', status=AntiCheatStatus.DENIED)
@@ -94,10 +143,13 @@ async def test_update_cache(cache, cache_data):
 		updated_data = json.loads(f.read())
 		assert '654321' in updated_data['game_cache']
 		assert '987654' in updated_data['anticheat_cache']['data']
+		assert (
+			updated_data['game_cache']['483']['timestamp']
+			== cache_data['game_cache']['483']['timestamp']
+		)
 
 
-@pytest.mark.asyncio
-async def test_prune_cache(cache, cache_data):
+def test_prune_cache(cache, cache_data):
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.load_cache(prune=True)
