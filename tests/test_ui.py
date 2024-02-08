@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from textual.color import Color
 from textual.coordinate import Coordinate
@@ -76,6 +78,7 @@ async def test_valid_input_data(config):
 		)
 
 
-@pytest.mark.asyncio
-async def test_(config):
-	app = SteamApp(config)
+def test_create_app():
+	"""This is to cover the default class instantiation with the default Config"""
+	with patch('vapor.config_handler.Config.read_config', return_value=True):
+		SteamApp()
