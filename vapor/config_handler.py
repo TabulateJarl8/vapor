@@ -67,9 +67,6 @@ class Config:
 
 		Returns:
 			str: The config value if exists. If not, an empty string.
-
-		Raises:
-			ConfigFileNotReadError: If the config file was never read.
 		"""
 		if self._config_data is None:
 			return ''
@@ -92,8 +89,10 @@ class Config:
 		"""
 		try:
 			self._config_data = ConfigParser()
-			if self._config_path.exists():
-				self._config_data.read(self._config_path)
+			if not self._config_path.exists():
+				raise ConfigReadError(f'File `{self._config_path}` does not exist')
+			self._config_data.read(self._config_path)
+
 		except Exception as e:
 			raise ConfigReadError from e
 
