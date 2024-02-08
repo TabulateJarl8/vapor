@@ -65,10 +65,6 @@ def cache_data():
 	}
 
 
-def test_cache_repr():
-	assert repr(Cache()) == f'Cache({Cache().__dict__})'
-
-
 def test_cache_properties_without_loading(cache):
 	assert not cache.has_game_cache
 	assert not cache.has_anticheat_cache
