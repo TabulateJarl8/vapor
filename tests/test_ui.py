@@ -79,3 +79,10 @@ async def test_valid_input_data(config):
 			'tall',
 			Color(78, 191, 113),
 		)
+
+
+@pytest.mark.asyncio
+async def test_(config):
+	app = SteamApp()
+	config.read_config()
+	app.config = config

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from vapor.api_interface import (
@@ -63,24 +65,18 @@ async def test_parse_anti_cheat_data():
 
 @pytest.mark.asyncio
 async def test_parse_steam_user_games():
-	# mock function that returns gold as every games rating # noqa: ERA001
-	async def _get_game_rating_func(*_):
-		return 'gold'
-
-	cache = MockCache(has_game=True)
-	result = await parse_steam_user_games(
-		STEAM_USER_GAMES_DATA, cache, _get_game_rating_func
-	)
-	assert len(result.game_ratings) == 2
-	assert result.user_average == 'gold'
+	with patch(
+		'vapor.api_interface.get_game_average_rating',
+		return_value='gold',
+	):
+		cache = MockCache(has_game=True)
+		result = await parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)
+		assert len(result.game_ratings) == 2
+		assert result.user_average == 'gold'
 
 
 @pytest.mark.asyncio
 async def test_parse_steam_user_priv_acct():
-	# mock function that returns gold as every games rating # noqa: ERA001
-	async def _get_game_rating_func(*_):
-		return 'gold'
-
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
-		await parse_steam_user_games({'response': {}}, cache, _get_game_rating_func)
+		await parse_steam_user_games({'response': {}}, cache)
