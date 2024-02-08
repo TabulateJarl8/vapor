@@ -1,5 +1,7 @@
 from configparser import ConfigParser
-from typing import Optional, Self
+from typing import Optional
+
+from typing_extensions import Self
 
 from vapor.data_structures import CONFIG_DIR
 from vapor.exceptions import ConfigFileNotReadError, ConfigReadError, ConfigWriteError

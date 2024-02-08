@@ -1,5 +1,5 @@
 import json
-from typing import Any, Awaitable, Callable, Dict, List
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import aiohttp
 
@@ -71,12 +71,12 @@ async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
 	)
 
 
-async def get_anti_cheat_data() -> Cache | None:
+async def get_anti_cheat_data() -> Optional[Cache]:
 	"""Get's the anti-cheat data from cache. If expired, it will fetch new
 	data and write that to cache.
 
 	Returns:
-		Cache | None: The cache containing anti-cheat data.
+		Optional[Cache]: The cache containing anti-cheat data.
 	"""
 	cache = Cache().load_cache()
 	if cache.has_anticheat_cache:

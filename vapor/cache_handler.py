@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
-from typing import Dict, List, Self, Tuple
+from typing import Dict, List, Optional, Tuple
+
+from typing_extensions import Self
 
 from vapor.data_structures import CONFIG_DIR, AntiCheatData, AntiCheatStatus, Game
 
@@ -64,14 +66,14 @@ class Cache:
 		"""Whether or not there is anticheat cache loaded."""
 		return bool(self._anti_cheat_data)
 
-	def get_game_data(self, app_id: str) -> Game | None:
+	def get_game_data(self, app_id: str) -> Optional[Game]:
 		"""Get game data from app ID.
 
 		Args:
 			app_id (str): The game's app ID.
 
 		Returns:
-			Game | None: The game data if exists. If not, None.
+			Optional[Game]: The game data if exists. If not, None.
 		"""
 		data = self._games_data.get(app_id, None)
 		if data is not None:
@@ -79,14 +81,14 @@ class Cache:
 
 		return None
 
-	def get_anticheat_data(self, app_id: str) -> AntiCheatData | None:
+	def get_anticheat_data(self, app_id: str) -> Optional[AntiCheatData]:
 		"""Get anticheat data from app ID.
 
 		Args:
 			app_id (str): The game's app ID.
 
 		Returns:
-			AntiCheatData | None: The game anticheat data if exists. If not, None.
+			Optional[AntiCheatData]: The game anticheat data if exists. If not, None.
 		"""
 		data = self._anti_cheat_data.get(app_id, None)
 		if data is not None:
@@ -136,14 +138,14 @@ class Cache:
 
 	def update_cache(
 		self,
-		game_list: List[Game] | None = None,
-		anti_cheat_list: List[AntiCheatData] | None = None,
+		game_list: Optional[List[Game]] = None,
+		anti_cheat_list: Optional[List[AntiCheatData]] = None,
 	) -> Self:
 		"""Update the cache file with new game and anticheat data.
 
 		Args:
-			game_list (List[Game] | None, optional): List of new game data. Defaults to None.
-			anti_cheat_list (List[AntiCheatData] | None, optional): List of new anticheat data. Defaults to None.
+			game_list (Optional[List[Game]], optional): List of new game data. Defaults to None.
+			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new anticheat data. Defaults to None.
 
 		Returns:
 			Self: self.
