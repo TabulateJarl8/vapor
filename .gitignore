@@ -1,6 +1,7 @@
 ganglion.toml
 .ruff_cache/
 vapor_config.ini
+viewcov.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

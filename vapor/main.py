@@ -114,7 +114,7 @@ class SteamApp(App):
 				),
 				id='input-container',
 			),
-			Center(Button('Check Profile', variant='primary')),
+			Center(Button('Check Profile', variant='primary', id='submit-button')),
 			Center(
 				Label(
 					Text.assemble('User Average Rating: ', ('N/A', 'magenta')),
