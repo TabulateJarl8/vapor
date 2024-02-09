@@ -130,6 +130,7 @@ async def test_table_population_username(config):
 				),
 			)
 
+			# check the the appropriate game was added to the table
 			table = app.query_one(DataTable)
 			assert table.get_cell_at(Coordinate(0, 0)) == 'Cool Game'
 			assert table.get_cell_at(Coordinate(0, 1)) == Text(
@@ -137,5 +138,6 @@ async def test_table_population_username(config):
 			)
 			assert table.get_cell_at(Coordinate(0, 2)) == Text('Denied', 'red')
 
+			# check that one one row was added to the table
 			with pytest.raises(CellDoesNotExist):
 				table.get_cell_at(Coordinate(1, 0))
