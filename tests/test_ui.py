@@ -298,13 +298,13 @@ async def test_settings_screen(config):
 		assert app.config.get_value('preserve-user-id') == 'false'
 
 		# switch on the preserve user id setting
-		assert await pilot.click(Switch)
+		assert await pilot.click('#preserve-user-id')
 
 		# check that config value was set
 		assert app.config.get_value('preserve-user-id') == 'true'
 
 		# switch off the preserve user id setting
-		assert await pilot.click(Switch)
+		assert await pilot.click('#preserve-user-id')
 
 		# check that config value was set
 		assert app.config.get_value('preserve-user-id') == 'false'
