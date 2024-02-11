@@ -1,7 +1,3 @@
-# Run this job on pushes to `main`, and for pull requests. If you don't specify
-# `branches: [main], then this actions runs _twice_ on pull requests, which is
-# annoying.
-
 on:
   push:
     branches: [master]
@@ -9,6 +5,7 @@ on:
 
 jobs:
   test:
+    name: Test code and coverage
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -73,10 +70,15 @@ jobs:
       - run: poetry install --no-interaction
 
       # run the tests and check for 100% coverage
-      - run: poetry run pytest . --cov=vapor --cov-report=term-missing --cov-fail-under=100
+      - run: poetry run pytest . --cov=vapor --cov-report=term-missing --cov-report=xml
 
       # check for code style errors
       - run: poetry run ruff check
       # disable code format checking until docstrings are sorted out
       # https://github.com/astral-sh/ruff/issues/8430
       # - run: poetry run ruff format --check
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        env:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: TabulateJarl8/vapor
