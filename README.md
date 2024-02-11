@@ -7,6 +7,7 @@
 	<a href="https://github.com/TabulateJarl8/vapor/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/vapor-steam.svg" /></a>
 	<a href="https://github.com/TabulateJarl8/vapor/graphs/commit-activity"><img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" /></a>
 	<a href="https://github.com/TabulateJarl8/vapor/issues/"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/TabulateJarl8/vapor.svg" /></a>
+	<img alt="Coverage" src="https://img.shields.io/codecov/c/github/TabulateJarl8/vapor" />
 	<a href="https://github.com/TabulateJarl8"><img alt="GitHub followers" src="https://img.shields.io/github/followers/TabulateJarl8?style=social" /></a>
 	<br>
 	<a href="https://ko-fi.com/L4L3L7IO2"><img alt="Kofi Badge" src="https://ko-fi.com/img/githubbutton_sm.svg" /></a>
