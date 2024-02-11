@@ -62,6 +62,10 @@ exclude_also = [
 
 	# Don't complain about abstract methods, they aren't run:
 	"@(abc\\.)?abstractmethod",
+
+	# dont test functions that only make network calls
+	"async def async_get",
+	
 ]
 
 omit = [

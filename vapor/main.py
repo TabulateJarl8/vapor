@@ -46,21 +46,19 @@ class SettingsScreen(Screen):
 		with Container(id='content-container'):
 			yield Markdown('# Settings', classes='heading')
 
-			with VerticalScroll():
-				yield Horizontal(
-					Static('Preserve Profile URL Input Value:      ', classes='label'),
-					Switch(
+			with VerticalScroll():  # noqa: SIM117
+				with Horizontal():
+					yield Static('Preserve Profile URL Input Value:', classes='label')
+					yield Switch(
 						value=self.config.get_value('preserve-user-id') == 'true',
 						id='preserve-user-id',
-					),
-					classes='container',
-				)
+					)
 
 		yield Footer()
 
 	def on_mount(self) -> None:
 		if not self.config.get_value('preserve-user-id'):
-			self.config.set_value('preserve-user-id', 'true')
+			self.config.set_value('preserve-user-id', 'false')
 			self.config.write_config()
 
 	@on(Switch.Changed)

@@ -70,7 +70,7 @@ async def test_parse_steam_user_games():
 		return_value='gold',
 	):
 		cache = MockCache(has_game=True)
-		result = await parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)
+		result = await parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)  # type: ignore
 		assert len(result.game_ratings) == 2
 		assert result.user_average == 'gold'
 
@@ -79,4 +79,4 @@ async def test_parse_steam_user_games():
 async def test_parse_steam_user_priv_acct():
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
-		await parse_steam_user_games({'response': {}}, cache)
+		await parse_steam_user_games({'response': {}}, cache)  # type: ignore

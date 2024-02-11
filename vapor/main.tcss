@@ -67,4 +67,5 @@ Screen {
 	height: 3;
 	content-align: center middle;
 	width: auto;
+	# margin-right: 5;
 }

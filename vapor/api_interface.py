@@ -172,7 +172,7 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 		raise UnauthorizedError
 
 	user_data = json.loads(data.data)
-	if user_data['response']['success'] != 1:
+	if 'response' not in user_data or user_data['response']['success'] != 1:
 		raise InvalidIDError
 
 	return user_data['response']['steamid']
