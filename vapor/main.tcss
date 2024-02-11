@@ -35,8 +35,8 @@ PrivateAccountScreen {
 #dialog {
 	align: center middle;
 	padding: 1;
-	width: 50%;
-	height: 55%;
+	width: 75%;
+	height: 65%;
 	border: thick $background 80%;
 	background: $surface;
 }
@@ -67,5 +67,5 @@ Screen {
 	height: 3;
 	content-align: center middle;
 	width: auto;
-	# margin-right: 5;
+	margin-right: 5;
 }

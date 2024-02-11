@@ -4,7 +4,7 @@ import pytest
 from rich.text import Text
 from textual.color import Color
 from textual.coordinate import Coordinate
-from textual.widgets import Button, DataTable
+from textual.widgets import Button, DataTable, Switch
 from textual.widgets._data_table import CellDoesNotExist
 from textual.widgets._toast import Toast
 
@@ -287,24 +287,24 @@ async def test_settings_screen(config):
 	# check that theres no default value
 	assert app.config.get_value('preserve-user-id') == ''
 
-	async with app.run_test() as pilot:
+	async with app.run_test(size=(105, 24)) as pilot:
 		# open the settings screen
 		await pilot.press('ctrl+s')
 
 		# check that the settings screen is shown to the user
 		assert isinstance(app.screen, SettingsScreen)
 
-		# # check that the default value was set
-		# assert app.config.get_value('preserve-user-id') == 'false'
+		# check that the default value was set
+		assert app.config.get_value('preserve-user-id') == 'false'
 
-		# # switch on the preserve user id setting
-		# assert await pilot.click(Switch)
+		# switch on the preserve user id setting
+		assert await pilot.click(Switch)
 
-		# # check that config value was set
-		# assert app.config.get_value('preserve-user-id') == 'true'
+		# check that config value was set
+		assert app.config.get_value('preserve-user-id') == 'true'
 
-		# # switch off the preserve user id setting
-		# assert await pilot.click(Switch)
+		# switch off the preserve user id setting
+		assert await pilot.click(Switch)
 
-		# # check that config value was set
-		# assert app.config.get_value('preserve-user-id') == 'false'
+		# check that config value was set
+		assert app.config.get_value('preserve-user-id') == 'false'

@@ -34,14 +34,9 @@ STEAM_USER_GAMES_DATA = {
 }
 
 STEAM_GAME_PLATFORM_DATA = {
-	"123":
-	{
-		"success": True,
-		"data": {
-			"platforms": {
-				"windows": True, "mac": False, "linux": False
-			}
-		}
+	'123': {
+		'success': True,
+		'data': {'platforms': {'windows': True, 'mac': False, 'linux': False}},
 	}
 }
 
@@ -99,6 +94,8 @@ async def test_parse_steam_user_priv_acct():
 
 @pytest.mark.asyncio
 async def test_check_game_is_native():
-	with patch('vapor.api_interface.async_get', return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200)):
+	with patch(
+		'vapor.api_interface.async_get',
+		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200),
+	):
 		assert not await check_game_is_native('123')
-
