@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vapor-steam"
-version = "1.5.0"
+version = "1.5.1"
 description = "TUI program to check the ProtonDB compatibility of all the games of a Steam user."
 authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
 license = "GPLv3"
@@ -23,7 +23,9 @@ classifiers = [
 	"Programming Language :: Python :: 3.12",
 	"Typing :: Typed"
 ]
-
+include = [
+	{ path = "tests", format = "sdist" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
