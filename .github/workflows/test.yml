@@ -79,6 +79,5 @@ jobs:
       # - run: poetry run ruff format --check
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
-        env:
+        with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: TabulateJarl8/vapor
