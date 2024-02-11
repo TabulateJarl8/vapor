@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 
@@ -71,12 +71,12 @@ async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
 	)
 
 
-async def get_anti_cheat_data() -> Cache | None:
+async def get_anti_cheat_data() -> Optional[Cache]:
 	"""Get's the anti-cheat data from cache. If expired, it will fetch new
 	data and write that to cache.
 
 	Returns:
-		Cache | None: The cache containing anti-cheat data.
+		Optional[Cache]: The cache containing anti-cheat data.
 	"""
 	cache = Cache().load_cache()
 	if cache.has_anticheat_cache:
@@ -101,12 +101,12 @@ async def get_anti_cheat_data() -> Cache | None:
 	return cache
 
 
-async def parse_anti_cheat_data(data: Dict) -> List[AntiCheatData]:
+async def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
 	"""Parse data from AreWeAntiCheatYet and return a list of
 	AntiCheatData instances.
 
 	Args:
-		data (Dict): The data from AreWeAntiCheatYet
+		data (List[Dict]): The data from AreWeAntiCheatYet
 
 	Returns:
 		List[AntiCheatData]: the anticheat statuses of each game in the given data
@@ -172,7 +172,7 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 		raise UnauthorizedError
 
 	user_data = json.loads(data.data)
-	if user_data['response']['success'] != 1:
+	if 'response' not in user_data or user_data['response']['success'] != 1:
 		raise InvalidIDError
 
 	return user_data['response']['steamid']
@@ -216,7 +216,10 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 	return await parse_steam_user_games(data, cache)
 
 
-async def parse_steam_user_games(data: Dict, cache: Cache) -> SteamUserData:
+async def parse_steam_user_games(
+	data: Dict,
+	cache: Cache,
+) -> SteamUserData:
 	"""Parse user data from the Steam API and return information on their games.
 
 	Args:

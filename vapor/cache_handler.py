@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
-from typing import Dict, List, Self, Tuple
+from typing import Dict, List, Optional, Tuple
+
+from typing_extensions import Self
 
 from vapor.data_structures import CONFIG_DIR, AntiCheatData, AntiCheatStatus, Game
 
@@ -16,9 +18,13 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class Cache:
 	def __init__(self):
+		self.cache_path = CACHE_PATH
 		self._games_data: Dict[str, Tuple[Game, str]] = {}
 		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
+
+	def __repr__(self):
+		return f'Cache({self.__dict__!r})'
 
 	def _serialize_game_data(self) -> dict:
 		"""Serialize the game data into a valid JSON dict.
@@ -60,14 +66,14 @@ class Cache:
 		"""Whether or not there is anticheat cache loaded."""
 		return bool(self._anti_cheat_data)
 
-	def get_game_data(self, app_id: str) -> Game | None:
+	def get_game_data(self, app_id: str) -> Optional[Game]:
 		"""Get game data from app ID.
 
 		Args:
 			app_id (str): The game's app ID.
 
 		Returns:
-			Game | None: The game data if exists. If not, None.
+			Optional[Game]: The game data if exists. If not, None.
 		"""
 		data = self._games_data.get(app_id, None)
 		if data is not None:
@@ -75,14 +81,14 @@ class Cache:
 
 		return None
 
-	def get_anticheat_data(self, app_id: str) -> AntiCheatData | None:
+	def get_anticheat_data(self, app_id: str) -> Optional[AntiCheatData]:
 		"""Get anticheat data from app ID.
 
 		Args:
 			app_id (str): The game's app ID.
 
 		Returns:
-			AntiCheatData | None: The game anticheat data if exists. If not, None.
+			Optional[AntiCheatData]: The game anticheat data if exists. If not, None.
 		"""
 		data = self._anti_cheat_data.get(app_id, None)
 		if data is not None:
@@ -103,7 +109,7 @@ class Cache:
 			self.prune_cache()
 
 		try:
-			data = json.loads(CACHE_PATH.read_text())
+			data = json.loads(self.cache_path.read_text())
 		except Exception:
 			return self
 
@@ -132,14 +138,14 @@ class Cache:
 
 	def update_cache(
 		self,
-		game_list: List[Game] | None = None,
-		anti_cheat_list: List[AntiCheatData] | None = None,
+		game_list: Optional[List[Game]] = None,
+		anti_cheat_list: Optional[List[AntiCheatData]] = None,
 	) -> Self:
 		"""Update the cache file with new game and anticheat data.
 
 		Args:
-			game_list (List[Game] | None, optional): List of new game data. Defaults to None.
-			anti_cheat_list (List[AntiCheatData] | None, optional): List of new anticheat data. Defaults to None.
+			game_list (Optional[List[Game]], optional): List of new game data. Defaults to None.
+			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new anticheat data. Defaults to None.
 
 		Returns:
 			Self: self.
@@ -169,7 +175,7 @@ class Cache:
 			'anticheat_cache': self._serialize_anti_cheat_data(),
 		}
 
-		CACHE_PATH.write_text(json.dumps(serialized_data))
+		self.cache_path.write_text(json.dumps(serialized_data))
 
 		return self
 
@@ -180,7 +186,7 @@ class Cache:
 			Self: self.
 		"""
 		try:
-			data = json.loads(CACHE_PATH.read_text())
+			data = json.loads(self.cache_path.read_text())
 		except Exception:
 			return self
 
@@ -210,6 +216,6 @@ class Cache:
 				# invalid datetime format
 				del data['anticheat_cache']
 
-		CACHE_PATH.write_text(json.dumps(data))
+		self.cache_path.write_text(json.dumps(data))
 
 		return self

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urlparse
 
 from rich.text import Text
@@ -24,7 +25,7 @@ from vapor.api_interface import (
 	get_anti_cheat_data,
 	get_steam_user_data,
 )
-from vapor.config_handler import read_config, write_config
+from vapor.config_handler import Config
 from vapor.data_structures import (
 	PRIVATE_ACCOUNT_HELP_MESSAGE,
 	RATING_DICT,
@@ -37,29 +38,33 @@ from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedEr
 class SettingsScreen(Screen):
 	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
 
+	def __init__(self, config):
+		self.config: Config = config
+		super().__init__()
+
 	def compose(self) -> ComposeResult:
 		with Container(id='content-container'):
 			yield Markdown('# Settings', classes='heading')
 
-			with VerticalScroll():
-				yield Horizontal(
-					Static('Preserve Profile URL Input Value:      ', classes='label'),
-					Switch(
-						value=read_config('preserve-user-id') == 'true',
+			with VerticalScroll():  # noqa: SIM117
+				with Horizontal():
+					yield Static('Preserve Profile URL Input Value:', classes='label')
+					yield Switch(
+						value=self.config.get_value('preserve-user-id') == 'true',
 						id='preserve-user-id',
-					),
-					classes='container',
-				)
+					)
 
 		yield Footer()
 
 	def on_mount(self) -> None:
-		if not read_config('preserve-user-id'):
-			write_config('preserve-user-id', 'true')
+		if not self.config.get_value('preserve-user-id'):
+			self.config.set_value('preserve-user-id', 'false')
+			self.config.write_config()
 
 	@on(Switch.Changed)
 	def on_setting_changed(self, event: Switch.Changed):
-		write_config(event.switch.id, str(event.value).lower())  # type: ignore
+		self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
+		self.config.write_config()
 
 
 class PrivateAccountScreen(ModalScreen):
@@ -79,28 +84,35 @@ class SteamApp(App):
 	TITLE = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
 
+	def __init__(self, custom_config: Optional[Config] = None):
+		if custom_config is None:
+			custom_config = Config()
+
+		self.config = custom_config.read_config()
+		super().__init__()
+
 	def compose(self) -> ComposeResult:
 		self.show_account_help_dialog = False
 		yield Header()
 		yield Container(
 			Center(
 				Input(
-					value=read_config('steam-api-key'),
+					value=self.config.get_value('steam-api-key'),
 					placeholder='Steam API Key',
 					id='api-key',
 					validators=Regex(r'[A-Z0-9]{32}'),
 				),
 				Input(
 					placeholder='Profile URL or Steam ID',
-					value=read_config('user-id')
-					if read_config('preserve-user-id') == 'true'
+					value=self.config.get_value('user-id')
+					if self.config.get_value('preserve-user-id') == 'true'
 					else '',
 					id='user-id',
 					validators=Regex(r'.+'),
 				),
 				id='input-container',
 			),
-			Center(Button('Check Profile', variant='primary')),
+			Center(Button('Check Profile', variant='primary', id='submit-button')),
 			Center(
 				Label(
 					Text.assemble('User Average Rating: ', ('N/A', 'magenta')),
@@ -120,7 +132,7 @@ class SteamApp(App):
 		for _ in range(12):
 			table.add_row('', '')
 
-		self.install_screen(SettingsScreen(), name='settings')
+		self.install_screen(SettingsScreen(self.config), name='settings')
 
 	@work(exclusive=True)
 	@on(Button.Pressed)
@@ -147,7 +159,7 @@ class SteamApp(App):
 			api_key: Input = self.query_one('#api-key')  # type: ignore
 			id: Input = self.query_one('#user-id')  # type: ignore
 
-			write_config('steam-api-key', api_key.value)
+			self.config.set_value('steam-api-key', api_key.value)
 
 			# parse id input to add URL compatibility
 			parsed_url = urlparse(id.value)
@@ -157,8 +169,8 @@ class SteamApp(App):
 				id.value = Path(parsed_url.path).name
 				id.refresh()
 
-			if read_config('preserve-user-id') == 'true':
-				write_config('user-id', id.value)
+			if self.config.get_value('preserve-user-id') == 'true':
+				self.config.set_value('user-id', id.value)
 
 			# fetch anti-cheat data
 			cache = await get_anti_cheat_data()
@@ -204,6 +216,8 @@ class SteamApp(App):
 		except PrivateAccountError:
 			self.show_account_help_dialog = True
 		finally:
+			self.config.write_config()
+
 			# re-enable Input widgets
 			for item in self.query(Input):
 				item.disabled = False
