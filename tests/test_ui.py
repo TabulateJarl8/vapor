@@ -4,7 +4,7 @@ import pytest
 from rich.text import Text
 from textual.color import Color
 from textual.coordinate import Coordinate
-from textual.widgets import Button, DataTable, Switch
+from textual.widgets import Button, DataTable
 from textual.widgets._data_table import CellDoesNotExist
 from textual.widgets._toast import Toast
 
