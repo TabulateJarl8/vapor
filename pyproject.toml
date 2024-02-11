@@ -65,6 +65,13 @@ exclude_also = [
 
 	# dont test functions that only make network calls
 	"async def async_get",
+	"async def get_anti_cheat_data",
+	"async def get_game_average_rating",
+	"async def resolve_vanity_name",
+	"async def get_steam_user_data",
+
+	# dont test status checking
+	"if data.status != 200",
 	
 ]
 

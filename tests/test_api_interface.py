@@ -1,8 +1,11 @@
+import json
 from unittest.mock import patch
 
 import pytest
 
 from vapor.api_interface import (
+	Response,
+	check_game_is_native,
 	parse_anti_cheat_data,
 	parse_steam_game_platform_info,
 	parse_steam_user_games,
@@ -27,6 +30,18 @@ STEAM_USER_GAMES_DATA = {
 			{'appid': 123456, 'name': 'Test Game 1', 'playtime_forever': 100},
 			{'appid': 789012, 'name': 'Test Game 2', 'playtime_forever': 200},
 		]
+	}
+}
+
+STEAM_GAME_PLATFORM_DATA = {
+	"123":
+	{
+		"success": True,
+		"data": {
+			"platforms": {
+				"windows": True, "mac": False, "linux": False
+			}
+		}
 	}
 }
 
@@ -80,3 +95,10 @@ async def test_parse_steam_user_priv_acct():
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
 		await parse_steam_user_games({'response': {}}, cache)  # type: ignore
+
+
+@pytest.mark.asyncio
+async def test_check_game_is_native():
+	with patch('vapor.api_interface.async_get', return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200)):
+		assert not await check_game_is_native('123')
+
