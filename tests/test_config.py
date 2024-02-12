@@ -76,8 +76,7 @@ def test_read_config_os_error(config):
 
 def test_read_config_non_existent_file(config):
 	config._config_path.exists_bool = False
-	with pytest.raises(ConfigReadError):
-		config.read_config()
+	assert config.read_config()._config_data._sections == {}
 
 
 def test_write_config_non_existent_file(config):

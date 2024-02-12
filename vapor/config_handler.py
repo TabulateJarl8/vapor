@@ -81,7 +81,8 @@ class Config:
 		return ''
 
 	def read_config(self) -> Self:
-		"""Read the config from the file location.
+		"""Read the config from the file location. If file does not exist, a
+		blank config is loaded.
 
 		Returns:
 			Self
@@ -91,9 +92,8 @@ class Config:
 		"""
 		try:
 			self._config_data = ConfigParser()
-			if not self._config_path.exists():
-				raise ConfigReadError(f'File `{self._config_path}` does not exist')
-			self._config_data.read(self._config_path)
+			if self._config_path.exists():
+				self._config_data.read(self._config_path)
 
 		except Exception as e:
 			raise ConfigReadError from e
