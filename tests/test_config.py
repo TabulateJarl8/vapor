@@ -32,7 +32,7 @@ class InMemoryPath(BytesIO):
 @pytest.fixture
 def config():
 	cfg = Config()
-	cfg._config_path = InMemoryPath()
+	cfg._config_path = InMemoryPath()  # type: ignore
 	return cfg
 
 
