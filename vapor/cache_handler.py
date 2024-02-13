@@ -36,7 +36,6 @@ class Cache:
 			app_id: {
 				'name': game[0].name,
 				'rating': game[0].rating,
-				'playtime': game[0].playtime,
 				'timestamp': game[1],
 			}
 			for app_id, game in self._games_data.items()
@@ -119,7 +118,7 @@ class Cache:
 					Game(
 						game_cache['name'],
 						rating=game_cache['rating'],
-						playtime=game_cache['playtime'],
+						playtime=0,
 						app_id=app_id,
 					),
 					game_cache['timestamp'],

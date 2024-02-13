@@ -139,6 +139,7 @@ def test_update_cache(cache, cache_data):
 		updated_data = json.loads(f.read())
 		assert '654321' in updated_data['game_cache']
 		assert '987654' in updated_data['anticheat_cache']['data']
+		assert 'playtime' not in updated_data['game_cache']['654321']
 		assert (
 			updated_data['game_cache']['483']['timestamp']
 			== cache_data['game_cache']['483']['timestamp']

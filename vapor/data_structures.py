@@ -23,7 +23,7 @@ _ANTI_CHEAT_COLORS: Dict[str, str] = {
 	'Broken': 'dark_orange3',
 	'Planned': 'purple',
 	'Running': 'blue',
-	'Supported': 'green',
+	'Supported': '#02b302',
 	'': '',
 }
 
@@ -101,5 +101,5 @@ RATING_DICT: Dict[str, ProtonDBRating] = {
 	'silver': ProtonDBRating(weight=3, color='#A6A6A6'),
 	'gold': ProtonDBRating(weight=4, color='#CFB53B'),
 	'platinum': ProtonDBRating(weight=5, color='#B4C7DC'),
-	'native': ProtonDBRating(weight=6, color='green'),
+	'native': ProtonDBRating(weight=6, color='#02b302'),
 }
