@@ -50,10 +50,11 @@ Screen {
 }
 
 #content-container {
-	width: 50%;
+	width: 75%;
 	height: auto;
 	max-height: 100%;
 	padding: 1 2;
+	margin: 2 0;
 	background: $panel;
 	color: $text;
 	border: $secondary tall;
