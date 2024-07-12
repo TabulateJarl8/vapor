@@ -17,7 +17,7 @@ jobs:
       # If you wanted to use multiple Python versions, you'd have specify a matrix in the job and
       # reference the matrixe python version here.
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
