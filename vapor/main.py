@@ -135,7 +135,7 @@ class SteamApp(App):
 		self.install_screen(SettingsScreen(self.config), name='settings')
 
 	@work(exclusive=True)
-	@on(Button.Pressed)
+	@on(Button.Pressed, '#submit-button')
 	@on(Input.Submitted)
 	async def populate_table(self) -> None:
 		try:
