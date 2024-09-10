@@ -252,9 +252,15 @@ async def parse_steam_user_games(
 	# remove all of the games that we used that were already cached
 	# this ensures that the timestamps of those games don't get updated
 	game_ratings_copy = game_ratings.copy()
-	for game in game_ratings_copy:
-		if cache.get_game_data(game.app_id) is not None:
-			game_ratings_copy.remove(game)
+	games_to_remove: List[Game] = [
+		game
+		for game in game_ratings_copy
+		if cache.get_game_data(game.app_id) is not None
+	]
+
+	# we do this in a seperate loop so that we're not mutating the iterable during iteration
+	for game in games_to_remove:
+		game_ratings_copy.remove(game)
 
 	# update the game cache
 	cache.update_cache(game_list=game_ratings)
