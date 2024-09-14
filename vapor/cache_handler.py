@@ -1,3 +1,5 @@
+"""Vapor cache handling."""
+
 import json
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -17,13 +19,20 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 class Cache:
+	"""Cache wrapper class.
+
+	Includes methods to aid with loading, updating, pruning, etc.
+	"""
+
 	def __init__(self):
+		"""Construct a new Cache object."""
 		self.cache_path = CACHE_PATH
 		self._games_data: Dict[str, Tuple[Game, str]] = {}
 		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
 
 	def __repr__(self):
+		"""Return the string representation of the Cache object."""
 		return f'Cache({self.__dict__!r})'
 
 	def _serialize_game_data(self) -> dict:

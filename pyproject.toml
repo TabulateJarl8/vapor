@@ -5,7 +5,7 @@ description = "TUI program to check the ProtonDB compatibility of all the games 
 authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
 license = "GPLv3"
 readme = "README.md"
-packages = [{include = "vapor"}]
+packages = [{ include = "vapor" }]
 homepage = "https://tabulate.tech/software/vapor"
 repository = "https://github.com/TabulateJarl8/vapor"
 keywords = ["steam", "protondb", "compatibility", "textual", "tui"]
@@ -21,11 +21,10 @@ classifiers = [
 	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3.12",
-	"Typing :: Typed"
+	"Programming Language :: Python :: 3.13",
+	"Typing :: Typed",
 ]
-include = [
-	{ path = "tests", format = "sdist" },
-]
+include = [{ path = "tests", format = "sdist" }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -77,9 +76,7 @@ exclude_also = [
 
 ]
 
-omit = [
-	"*/__main__.py",
-]
+omit = ["*/__main__.py"]
 
 
 [tool.ruff.lint]
@@ -87,11 +84,12 @@ preview = true
 extend-select = [
 	# pycodestyle
 	"E",
-	"W293",
-	"W292",
-	"W605",
+	# Warnings
+	"W",
 	# Pyflakes
 	"F",
+	# pydocstyle
+	"D",
 	# pyupgrade
 	"UP",
 	# flake8-bugbear
@@ -124,9 +122,28 @@ extend-select = [
 	# eradicate
 	"ERA",
 	# perflint
-	"PERF"
+	"PERF",
 ]
-ignore = ["E501", "E274", "S110", "FBT001", "FBT002", "PERF203", "S101"]
+ignore = [
+	# complains about tab indentation
+	"W191",
+	"D206",
+
+	# adds a line break before a class docstring
+	"D203",
+
+	# puts the first line summary of a docstring on a different line than the """
+	"D213",
+
+	"D413",
+	"E501",
+	"E274",
+	"S110",
+	"FBT001",
+	"FBT002",
+	"PERF203",
+	"S101",
+]
 
 [tool.ruff.format]
 quote-style = "single"

@@ -1,3 +1,5 @@
+"""Tests related to vapor's config handler."""
+
 from io import BytesIO
 
 import pytest
@@ -7,56 +9,70 @@ from vapor.exceptions import ConfigFileNotReadError, ConfigReadError, ConfigWrit
 
 
 class InMemoryPath(BytesIO):
+	"""An in memory "file" with a virtual path."""
+
 	def __init__(self):
+		"""Construct a virtual in-memory file."""
 		super().__init__()
 		self.write(b'')
 
 		self.exists_bool = True
 
 	def open(self, _):
+		"""Seek to 0 to mimic file opening."""
 		self.seek(0)
 		return self
 
 	def exists(self):
+		"""Return whether or not the file has been set to exist by the user."""
 		return self.exists_bool
 
 	def write(self, string):
+		"""Write a string to the virtual file."""
 		if isinstance(string, str):
 			string = string.encode()
 		super().write(string)
 
+		return 0
+
 	def __exit__(self, *_):
-		pass
+		"""Define dummy method for use in with blocks."""
 
 
 @pytest.fixture
 def config():
+	"""Pytest fixture of Config that uses InMemoryPath."""
 	cfg = Config()
 	cfg._config_path = InMemoryPath()  # type: ignore
 	return cfg
 
 
 def test_set_value(config):
+	"""Test setting a value in the config."""
 	config.read_config()
 	config.set_value('test_key', 'test_value')
 	assert config.get_value('test_key') == 'test_value'
 
 
 def test_set_value_no_read(config):
+	"""Test that setting a value without reading throws an error."""
 	with pytest.raises(ConfigFileNotReadError):
 		config.set_value('test', 'test2')
 
 
 def test_get_value_no_read(config):
+	"""Test getting a value without returns an empty string."""
 	assert config.get_value('non_existent_key') == ''
 
 
 def test_get_value_empty(config):
+	"""Test that getting a nonexistant value behaves correctly."""
 	config.read_config()
 	assert config.get_value('non_existent_key') == ''
 
 
 def test_write_config(config):
+	"""Test that writing the config works correctly."""
 	config.read_config()
 	config.set_value('test_key', 'test_value')
 	config.write_config()
@@ -64,22 +80,26 @@ def test_write_config(config):
 
 
 def test_write_config_no_read(config):
+	"""Test writing config without reading throws an error."""
 	with pytest.raises(ConfigFileNotReadError):
 		config.write_config()
 
 
 def test_read_config_os_error(config):
+	"""Test reading with an invalid path throws an error."""
 	config._config_path = ''
 	with pytest.raises(ConfigReadError):
 		config.read_config()
 
 
 def test_read_config_non_existent_file(config):
+	"""Test reading when file doesn't exist behaves correctly."""
 	config._config_path.exists_bool = False
 	assert config.read_config()._config_data._sections == {}
 
 
 def test_write_config_non_existent_file(config):
+	"""Test that writing to a nonexistant path throws an error."""
 	config.read_config()
 	config._config_path = ''
 	with pytest.raises(ConfigWriteError):

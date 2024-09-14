@@ -1,3 +1,5 @@
+"""Vapor configuration file handling."""
+
 from configparser import ConfigParser
 from typing import Optional
 
@@ -11,12 +13,18 @@ CONFIG_PATH = CONFIG_DIR / 'config.ini'
 
 
 class Config:
+	"""Config wrapper class.
+
+	Includes methods to aid with reading and writing, setting and getting, etc.
+	"""
+
 	def __init__(self):
+		"""Construct a new Config object."""
 		self._config_path = CONFIG_PATH
 		self._config_data: Optional[ConfigParser] = None
 
 	def set_value(self, key: str, value: str) -> Self:
-		"""Sets a value in the config file.
+		"""Set a value in the config file.
 
 		This does not write to the actual config file, just updates it in memory.
 
@@ -41,7 +49,7 @@ class Config:
 		return self
 
 	def write_config(self) -> Self:
-		"""Writes the config to a file.
+		"""Write the config to a file.
 
 		Returns:
 			Self
@@ -81,8 +89,9 @@ class Config:
 		return ''
 
 	def read_config(self) -> Self:
-		"""Read the config from the file location. If file does not exist, a
-		blank config is loaded.
+		"""Read the config from the file location.
+
+		If file does not exist, a blank config is loaded.
 
 		Returns:
 			Self

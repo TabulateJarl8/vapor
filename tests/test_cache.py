@@ -1,3 +1,5 @@
+"""Tests related to caching."""
+
 import io
 import json
 from datetime import datetime, timedelta
@@ -12,31 +14,38 @@ class BytesIOPath:
 	"""A Path-like object that writes to a BytesIO object instead of the filesystem."""
 
 	def __init__(self, bytes_io):
+		"""Construct a BytesIOPath object."""
 		self.bytes_io = bytes_io
 
 	def read_text(self):
+		"""Seek to 0 and return the reading of the BytesIO."""
 		self.bytes_io.seek(0)
 		return self.bytes_io.read().decode()
 
 	def write_text(self, text):
+		"""Write text to the BytesIO object."""
 		self.bytes_io.seek(0)
 		self.bytes_io.truncate()
 		self.bytes_io.write(text.encode())
 
 	def __enter__(self):
+		"""Return self."""
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
+		"""Close the BytesIO object."""
 		self.bytes_io.close()
 
 
 @pytest.fixture
 def cache():
+	"""Fixture for the Cache object."""
 	return Cache()
 
 
 @pytest.fixture
 def cache_data():
+	"""Fixture for getting the cache data."""
 	return {
 		'game_cache': {
 			'123456': {
@@ -66,11 +75,13 @@ def cache_data():
 
 
 def test_cache_properties_without_loading(cache):
+	"""Test that Cache properties are correctly before cache has been loaded."""
 	assert not cache.has_game_cache
 	assert not cache.has_anticheat_cache
 
 
 def test_load_cache(cache, cache_data):
+	"""Test that the Cache loads data correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.load_cache(prune=False)
@@ -84,6 +95,7 @@ def test_load_cache(cache, cache_data):
 
 
 def test_loading_bad_file(cache):
+	"""Test that Cache behaves properly when a bad file is loaded."""
 	cache.cache_path = ''
 
 	cache_before = cache
@@ -93,6 +105,7 @@ def test_loading_bad_file(cache):
 
 
 def test_prune_bad_file(cache):
+	"""Test that pruning a bad file doesn't crash."""
 	cache.cache_path = ''
 
 	cache_before = cache
@@ -102,6 +115,7 @@ def test_prune_bad_file(cache):
 
 
 def test_invalid_datetimes(cache, cache_data):
+	"""Test that invalid datetimes are handled correctly."""
 	cache_data['game_cache']['999'] = {
 		'name': 'invalid datetime game',
 		'rating': 'platinum',
@@ -123,6 +137,7 @@ def test_invalid_datetimes(cache, cache_data):
 
 
 def test_update_cache(cache, cache_data):
+	"""Test that cache updates are performed correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.update_cache(
@@ -147,6 +162,7 @@ def test_update_cache(cache, cache_data):
 
 
 def test_prune_cache(cache, cache_data):
+	"""Test that cache prunes are performed correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.load_cache(prune=True)

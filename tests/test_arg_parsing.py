@@ -1,3 +1,5 @@
+"""Tests related to argument parsing."""
+
 import argparse
 from unittest.mock import MagicMock, patch
 

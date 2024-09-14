@@ -1,3 +1,5 @@
+"""Vapor argument parsing."""
+
 import argparse
 
 from vapor import cache_handler

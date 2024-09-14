@@ -1,3 +1,6 @@
+"""Vapor's custom exceptions."""
+
+
 class InvalidIDError(Exception):
 	"""If an invalid Steam ID is used, this error will be raised."""
 

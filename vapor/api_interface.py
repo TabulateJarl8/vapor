@@ -1,3 +1,5 @@
+"""Steam and ProtonDB API helper functions."""
+
 import json
 from typing import Any, Dict, List, Optional
 
@@ -52,8 +54,7 @@ async def check_game_is_native(app_id: str) -> bool:
 
 
 async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
-	"""Parse data from the Steam API and return whether or not the game is
-	native to Linux.
+	"""Parse data from the Steam API and return whether or not the game is native to Linux.
 
 	Args:
 		data (Dict): the data from the Steam API.
@@ -72,8 +73,9 @@ async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
 
 
 async def get_anti_cheat_data() -> Optional[Cache]:
-	"""Get's the anti-cheat data from cache. If expired, it will fetch new
-	data and write that to cache.
+	"""Get the anti-cheat data from cache.
+
+	If expired, this function will fetch new data and write that to cache.
 
 	Returns:
 		Optional[Cache]: The cache containing anti-cheat data.
@@ -102,8 +104,7 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 
 
 async def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
-	"""Parse data from AreWeAntiCheatYet and return a list of
-	AntiCheatData instances.
+	"""Parse and return data from AreWeAntiCheatYet.
 
 	Args:
 		data (List[Dict]): The data from AreWeAntiCheatYet
@@ -125,7 +126,7 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	"""Get the average game rating from ProtonDB.
 
 	Args:
-		id (str): The game ID.
+		app_id (str): The game ID.
 		cache (Cache): The game cache.
 
 	Returns:
@@ -229,7 +230,6 @@ async def parse_steam_user_games(
 	Returns:
 		SteamUserData: the user's Steam games and ProtonDB ratings
 	"""
-
 	data = data['response']
 
 	if 'games' not in data:

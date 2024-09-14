@@ -1,3 +1,5 @@
+"""Vapor's global data structures."""
+
 from enum import Enum
 from typing import Dict, List, NamedTuple
 
@@ -85,8 +87,11 @@ class Game(NamedTuple):
 
 
 class SteamUserData(NamedTuple):
-	"""The data for a steam user. Includes a list of games and their respective
-	ProtonDB ratings, as well as the user's average ProtonDB rating."""
+	"""The data for a steam user.
+
+	Includes a list of games and their respective ProtonDB ratings,
+	as well as the user's average ProtonDB rating.
+	"""
 
 	game_ratings: List[Game]
 	"""The user's game ratings from ProtonDB."""

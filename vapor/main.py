@@ -1,3 +1,5 @@
+"""Main code and UI."""
+
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
@@ -36,13 +38,17 @@ from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedEr
 
 
 class SettingsScreen(Screen):
+	"""Settings editor screen for modifying the config file."""
+
 	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
 
 	def __init__(self, config):
+		"""Construct the Settings screen."""
 		self.config: Config = config
 		super().__init__()
 
 	def compose(self) -> ComposeResult:
+		"""Compose the Settings screen with textual components."""
 		with Container(id='content-container'):
 			yield Markdown('# Settings', classes='heading')
 
@@ -57,18 +63,27 @@ class SettingsScreen(Screen):
 		yield Footer()
 
 	def on_mount(self) -> None:
+		"""On mount, check that all of the needed config values have been set in the config.
+
+		This is useful for migration of older versions to newer versions when new
+		configuration options have been added.
+		"""
 		if not self.config.get_value('preserve-user-id'):
 			self.config.set_value('preserve-user-id', 'false')
 			self.config.write_config()
 
 	@on(Switch.Changed)
 	def on_setting_changed(self, event: Switch.Changed):
+		"""Whenever a setting has changed, update it in the config file."""
 		self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
 		self.config.write_config()
 
 
 class PrivateAccountScreen(ModalScreen):
+	"""Error screen for private account errors."""
+
 	def compose(self) -> ComposeResult:
+		"""Compose the error screen with textual components."""
 		yield Center(
 			Label(PRIVATE_ACCOUNT_HELP_MESSAGE, id='acct-info'),
 			Button('Close', variant='error', id='close-acct-screen'),
@@ -76,15 +91,22 @@ class PrivateAccountScreen(ModalScreen):
 		)
 
 	def on_button_pressed(self) -> None:
+		"""When the dismiss button is pressed, close the screen."""
 		self.dismiss()
 
 
 class SteamApp(App):
+	"""Main application class."""
+
 	CSS_PATH = 'main.tcss'
 	TITLE = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
 
 	def __init__(self, custom_config: Optional[Config] = None):
+		"""Construct the application.
+
+		This reads and instantiates the config.
+		"""
 		if custom_config is None:
 			custom_config = Config()
 
@@ -92,6 +114,7 @@ class SteamApp(App):
 		super().__init__()
 
 	def compose(self) -> ComposeResult:
+		"""Compose the application from textual components."""
 		self.show_account_help_dialog = False
 		yield Header()
 		yield Container(
@@ -125,6 +148,7 @@ class SteamApp(App):
 		yield Footer()
 
 	def on_mount(self) -> None:
+		"""On mount, we initialize the table columns."""
 		# add nothing to table so that it shows up
 		table = self.query_one(DataTable)
 		table.add_columns('Title', 'Compatibility', 'Anti-Cheat Compatibility')
@@ -138,6 +162,7 @@ class SteamApp(App):
 	@on(Button.Pressed, '#submit-button')
 	@on(Input.Submitted)
 	async def populate_table(self) -> None:
+		"""Populate the table with game information when the submit button is pressed."""
 		try:
 			# disable all Input widgets
 			for item in self.query(Input):
