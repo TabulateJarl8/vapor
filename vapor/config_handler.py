@@ -36,7 +36,8 @@ class Config:
 			Self
 
 		Raises:
-			ConfigFileNotReadError: If a config value is set without the config being read.
+			ConfigFileNotReadError: If a config value is set without the
+				config being read.
 		"""
 		if self._config_data is None:
 			raise ConfigFileNotReadError

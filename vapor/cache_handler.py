@@ -108,7 +108,8 @@ class Cache:
 		"""Load and deserialize the cache.
 
 		Args:
-			prune (bool, optional): Whether or not to prune old cache entries. Defaults to True.
+			prune (bool, optional): Whether or not to prune old cache
+				entries. Defaults to True.
 
 		Returns:
 			Self: self.
@@ -152,8 +153,10 @@ class Cache:
 		"""Update the cache file with new game and anticheat data.
 
 		Args:
-			game_list (Optional[List[Game]], optional): List of new game data. Defaults to None.
-			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new anticheat data. Defaults to None.
+			game_list (Optional[List[Game]], optional): List of new game data.
+				Defaults to None.
+			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new
+				anticheat data. Defaults to None.
 
 		Returns:
 			Self: self.

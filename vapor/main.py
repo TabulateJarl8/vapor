@@ -63,7 +63,7 @@ class SettingsScreen(Screen):
 		yield Footer()
 
 	def on_mount(self) -> None:
-		"""On mount, check that all of the needed config values have been set in the config.
+		"""On mount, check that all the needed config values have been set in config.
 
 		This is useful for migration of older versions to newer versions when new
 		configuration options have been added.
@@ -162,7 +162,7 @@ class SteamApp(App):
 	@on(Button.Pressed, '#submit-button')
 	@on(Input.Submitted)
 	async def populate_table(self) -> None:
-		"""Populate the table with game information when the submit button is pressed."""
+		"""Populate datatable with game information when submit button is pressed."""
 		try:
 			# disable all Input widgets
 			for item in self.query(Input):

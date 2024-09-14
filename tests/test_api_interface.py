@@ -7,9 +7,9 @@ import pytest
 
 from vapor.api_interface import (
 	Response,
+	_extract_game_is_native,
 	check_game_is_native,
 	parse_anti_cheat_data,
-	parse_steam_game_platform_info,
 	parse_steam_user_games,
 )
 from vapor.data_structures import AntiCheatStatus, Game
@@ -74,9 +74,9 @@ class MockCache:
 @pytest.mark.asyncio
 async def test_parse_steam_game_data():
 	"""Test that Steam data is correctly parsed."""
-	assert await parse_steam_game_platform_info(STEAM_GAME_DATA, '123456')
-	assert not await parse_steam_game_platform_info(STEAM_GAME_DATA, '789012')
-	assert not await parse_steam_game_platform_info(STEAM_GAME_DATA, '123')
+	assert await _extract_game_is_native(STEAM_GAME_DATA, '123456')
+	assert not await _extract_game_is_native(STEAM_GAME_DATA, '789012')
+	assert not await _extract_game_is_native(STEAM_GAME_DATA, '123')
 
 
 @pytest.mark.asyncio

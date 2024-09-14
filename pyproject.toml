@@ -135,8 +135,9 @@ ignore = [
 	# puts the first line summary of a docstring on a different line than the """
 	"D213",
 
+	# tries to add a blank line after the last docstring section
 	"D413",
-	"E501",
+
 	"E274",
 	"S110",
 	"FBT001",
