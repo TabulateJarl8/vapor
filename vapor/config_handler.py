@@ -18,7 +18,7 @@ class Config:
 	Includes methods to aid with reading and writing, setting and getting, etc.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		"""Construct a new Config object."""
 		self._config_path = CONFIG_PATH
 		self._config_data: Optional[ConfigParser] = None

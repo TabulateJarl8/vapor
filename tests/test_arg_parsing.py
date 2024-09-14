@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from vapor.argument_handler import parse_args
 
 
-def test_parse_args_without_clear_cache():
+def test_parse_args_without_clear_cache() -> None:
 	"""Test parsing arguments without --clear-cache flag."""
 	with patch(
 		'argparse.ArgumentParser.parse_args',
@@ -17,7 +17,7 @@ def test_parse_args_without_clear_cache():
 
 
 @patch('pathlib.Path.unlink', **{'other.side_effect': FileNotFoundError})
-def test_parse_args_missing_cache(mock_unlink):
+def test_parse_args_missing_cache(mock_unlink) -> None:  # noqa: ANN001
 	"""Test parsing arguments when cache file is missing."""
 	with patch(
 		'argparse.ArgumentParser.parse_args',

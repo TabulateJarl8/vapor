@@ -24,14 +24,14 @@ class Cache:
 	Includes methods to aid with loading, updating, pruning, etc.
 	"""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		"""Construct a new Cache object."""
 		self.cache_path = CACHE_PATH
 		self._games_data: Dict[str, Tuple[Game, str]] = {}
 		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		"""Return the string representation of the Cache object."""
 		return f'Cache({self.__dict__!r})'
 
@@ -104,7 +104,7 @@ class Cache:
 
 		return None
 
-	def load_cache(self, prune=True) -> Self:
+	def load_cache(self, prune: Optional[bool] = True) -> Self:
 		"""Load and deserialize the cache.
 
 		Args:

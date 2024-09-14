@@ -17,7 +17,7 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-async def async_get(url: str, **session_kwargs: Any) -> Response:
+async def async_get(url: str, **session_kwargs: Any) -> Response:  # noqa: ANN401
 	"""Async get request for fetching web content.
 
 	Args:

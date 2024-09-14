@@ -3,7 +3,7 @@
 from vapor.data_structures import _ANTI_CHEAT_COLORS, AntiCheatData, AntiCheatStatus
 
 
-def test_anti_cheat_data_color_resolution():
+def test_anti_cheat_data_color_resolution() -> None:
 	"""Test that anticheat colors are correct."""
 	assert (
 		AntiCheatData('', AntiCheatStatus.BROKEN).color == _ANTI_CHEAT_COLORS['Broken']

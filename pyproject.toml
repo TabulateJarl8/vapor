@@ -123,6 +123,10 @@ extend-select = [
 	"ERA",
 	# perflint
 	"PERF",
+	# flake8-2020
+	"YTT",
+	# flake8-annotations
+	"ANN",
 ]
 ignore = [
 	# complains about tab indentation

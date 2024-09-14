@@ -5,7 +5,7 @@ import argparse
 from vapor import cache_handler
 
 
-def parse_args():
+def parse_args() -> None:
 	"""Parse arguments from stdin."""
 	parser = argparse.ArgumentParser(
 		prog='vapor',

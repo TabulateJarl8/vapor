@@ -42,7 +42,7 @@ class SettingsScreen(Screen):
 
 	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
 
-	def __init__(self, config):
+	def __init__(self, config: Config) -> None:
 		"""Construct the Settings screen."""
 		self.config: Config = config
 		super().__init__()
@@ -73,7 +73,7 @@ class SettingsScreen(Screen):
 			self.config.write_config()
 
 	@on(Switch.Changed)
-	def on_setting_changed(self, event: Switch.Changed):
+	def on_setting_changed(self, event: Switch.Changed) -> None:
 		"""Whenever a setting has changed, update it in the config file."""
 		self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
 		self.config.write_config()
@@ -102,7 +102,7 @@ class SteamApp(App):
 	TITLE = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
 
-	def __init__(self, custom_config: Optional[Config] = None):
+	def __init__(self, custom_config: Optional[Config] = None) -> None:
 		"""Construct the application.
 
 		This reads and instantiates the config.

@@ -46,11 +46,11 @@ STEAM_GAME_PLATFORM_DATA = {
 class MockCache:
 	"""Mock Cache object with a set Game data."""
 
-	def __init__(self, has_game: bool):
+	def __init__(self, has_game: bool) -> None:
 		"""Construct a new MockCache object."""
 		self.has_game_cache = has_game
 
-	def get_game_data(self, app_id):  # noqa: ARG002
+	def get_game_data(self, app_id: None) -> Game:  # noqa: ARG002
 		"""Return a set Game data for testing.
 
 		Args:
@@ -63,7 +63,7 @@ class MockCache:
 			app_id='227300',
 		)
 
-	def update_cache(self, game_list):
+	def update_cache(self, game_list: None) -> None:
 		"""Update cache with dummy function. Does nothing.
 
 		Args:
@@ -72,7 +72,7 @@ class MockCache:
 
 
 @pytest.mark.asyncio
-async def test_parse_steam_game_data():
+async def test_parse_steam_game_data() -> None:
 	"""Test that Steam data is correctly parsed."""
 	assert await _extract_game_is_native(STEAM_GAME_DATA, '123456')
 	assert not await _extract_game_is_native(STEAM_GAME_DATA, '789012')
@@ -80,7 +80,7 @@ async def test_parse_steam_game_data():
 
 
 @pytest.mark.asyncio
-async def test_parse_anti_cheat_data():
+async def test_parse_anti_cheat_data() -> None:
 	"""Test that anti-cheat data is parsed correctly."""
 	result = await parse_anti_cheat_data(ANTI_CHEAT_DATA)
 	assert len(result) == 2
@@ -90,7 +90,7 @@ async def test_parse_anti_cheat_data():
 
 
 @pytest.mark.asyncio
-async def test_parse_steam_user_games():
+async def test_parse_steam_user_games() -> None:
 	"""Test that Steam games are parsed correctly."""
 	with patch(
 		'vapor.api_interface.get_game_average_rating',
@@ -103,7 +103,7 @@ async def test_parse_steam_user_games():
 
 
 @pytest.mark.asyncio
-async def test_parse_steam_user_priv_acct():
+async def test_parse_steam_user_priv_acct() -> None:
 	"""Test that Steam private accounts are handled correctly."""
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
@@ -111,7 +111,7 @@ async def test_parse_steam_user_priv_acct():
 
 
 @pytest.mark.asyncio
-async def test_check_game_is_native():
+async def test_check_game_is_native() -> None:
 	"""Test that native games are correctly detected."""
 	with patch(
 		'vapor.api_interface.async_get',

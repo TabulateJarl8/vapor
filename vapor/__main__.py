@@ -10,7 +10,7 @@ from vapor import main as entrypoint
 from vapor.argument_handler import parse_args
 
 
-def main():
+def main() -> None:
 	"""Entrypoint for the program."""
 	parse_args()
 
