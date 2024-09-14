@@ -3,7 +3,6 @@
 from io import BytesIO
 
 import pytest
-from _typeshed import ReadableBuffer
 from typing_extensions import Self
 
 from vapor.config_handler import Config
@@ -29,7 +28,7 @@ class InMemoryPath(BytesIO):
 		"""Return whether or not the file has been set to exist by the user."""
 		return self.exists_bool
 
-	def write(self, string: ReadableBuffer) -> int:
+	def write(self, string) -> int:  # noqa: ANN001
 		"""Write a string to the virtual file."""
 		if isinstance(string, str):
 			string = string.encode()

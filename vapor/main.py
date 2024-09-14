@@ -182,26 +182,26 @@ class SteamApp(App):
 
 			# get user's API key and ID
 			api_key: Input = self.query_one('#api-key')  # type: ignore
-			id: Input = self.query_one('#user-id')  # type: ignore
+			user_id: Input = self.query_one('#user-id')  # type: ignore
 
 			self.config.set_value('steam-api-key', api_key.value)
 
 			# parse id input to add URL compatibility
-			parsed_url = urlparse(id.value)
+			parsed_url = urlparse(user_id.value)
 			if parsed_url.netloc == 'steamcommunity.com' and (
 				'/profiles/' in parsed_url.path or '/id/' in parsed_url.path
 			):
-				id.value = Path(parsed_url.path).name
-				id.refresh()
+				user_id.value = Path(parsed_url.path).name
+				user_id.refresh()
 
 			if self.config.get_value('preserve-user-id') == 'true':
-				self.config.set_value('user-id', id.value)
+				self.config.set_value('user-id', user_id.value)
 
 			# fetch anti-cheat data
 			cache = await get_anti_cheat_data()
 
 			# Fetch user data
-			user_data = await get_steam_user_data(api_key.value, id.value)
+			user_data = await get_steam_user_data(api_key.value, user_id.value)
 			table.clear()
 
 			# Add games and ratings to the DataTable

@@ -127,6 +127,10 @@ extend-select = [
 	"YTT",
 	# flake8-annotations
 	"ANN",
+	# flake8-async
+	"ASYNC",
+	# flake8-builtins
+	"A",
 ]
 ignore = [
 	# complains about tab indentation

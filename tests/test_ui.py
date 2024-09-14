@@ -45,9 +45,9 @@ def config() -> Config:
 class MockCache:
 	"""Mock Cache object with set anticheat data."""
 
-	def get_anticheat_data(self, id: str) -> Optional[AntiCheatData]:
+	def get_anticheat_data(self, app_id: str) -> Optional[AntiCheatData]:
 		"""Return anticheat status denied for id 123."""
-		if id == '123':
+		if app_id == '123':
 			return AntiCheatData('123', AntiCheatStatus.DENIED)
 		return None
 

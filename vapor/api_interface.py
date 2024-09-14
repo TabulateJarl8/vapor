@@ -179,12 +179,12 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 	return user_data['response']['steamid']
 
 
-async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
+async def get_steam_user_data(api_key: str, app_id: str) -> SteamUserData:
 	"""Fetch a steam user's games and get their ratings from ProtonDB.
 
 	Args:
 		api_key (str): Steam API key.
-		id (str): The user's Steam ID or vanity name.
+		app_id (str): The user's Steam ID or vanity name.
 
 	Raises:
 		InvalidIDError: If an invalid Steam ID is provided.
@@ -194,9 +194,9 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		SteamUserData: The Steam user's data.
 	"""
 	# check if ID is a Steam ID or vanity URL
-	if len(id) != 17 or not id.startswith('76561198'):
+	if len(app_id) != 17 or not app_id.startswith('76561198'):
 		try:
-			id = await resolve_vanity_name(api_key, id)
+			app_id = await resolve_vanity_name(api_key, app_id)
 		except UnauthorizedError as e:
 			raise UnauthorizedError from e
 		except InvalidIDError:
@@ -205,7 +205,7 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 	cache = Cache().load_cache()
 
 	data = await async_get(
-		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={id}&format=json&include_appinfo=1&include_played_free_games=1',
+		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={app_id}&format=json&include_appinfo=1&include_played_free_games=1',
 	)
 	if data.status == 400:
 		raise InvalidIDError
