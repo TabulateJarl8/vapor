@@ -217,7 +217,7 @@ class Cache:
 		if 'anticheat_cache' in data:
 			try:
 				parsed_date = datetime.strptime(
-					data['anticheat_cache']['timestamp'], TIMESTAMP_FORMAT
+					data['anticheat_cache']['timestamp'], TIMESTAMP_FORMAT,
 				)
 				if (datetime.now() - parsed_date).days > CACHE_INVALIDATION_DAYS:
 					# cache is too old, delete game

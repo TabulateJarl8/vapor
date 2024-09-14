@@ -54,7 +54,7 @@ def cache_data() -> dict:
 				'rating': 'gold',
 				'playtime': 100,
 				'timestamp': (datetime.now() - timedelta(days=8)).strftime(
-					'%Y-%m-%d %H:%M:%S'
+					'%Y-%m-%d %H:%M:%S',
 				),
 			},
 			'483': {
@@ -62,14 +62,14 @@ def cache_data() -> dict:
 				'rating': 'platinum',
 				'playtime': 100,
 				'timestamp': (datetime.now() - timedelta(days=1)).strftime(
-					'%Y-%m-%d %H:%M:%S'
+					'%Y-%m-%d %H:%M:%S',
 				),
 			},
 		},
 		'anticheat_cache': {
 			'data': {'789012': 'Denied'},
 			'timestamp': (datetime.now() - timedelta(days=8)).strftime(
-				'%Y-%m-%d %H:%M:%S'
+				'%Y-%m-%d %H:%M:%S',
 			),
 		},
 	}
@@ -147,7 +147,7 @@ def test_update_cache(cache, cache_data) -> None:  # noqa: ANN001
 				Game(name='Game 2', rating='silver', playtime=200, app_id='483'),
 			],
 			anti_cheat_list=[
-				AntiCheatData(app_id='987654', status=AntiCheatStatus.DENIED)
+				AntiCheatData(app_id='987654', status=AntiCheatStatus.DENIED),
 			],
 		)
 

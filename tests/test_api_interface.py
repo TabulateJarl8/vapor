@@ -31,15 +31,15 @@ STEAM_USER_GAMES_DATA = {
 		'games': [
 			{'appid': 123456, 'name': 'Test Game 1', 'playtime_forever': 100},
 			{'appid': 789012, 'name': 'Test Game 2', 'playtime_forever': 200},
-		]
-	}
+		],
+	},
 }
 
 STEAM_GAME_PLATFORM_DATA = {
 	'123': {
 		'success': True,
 		'data': {'platforms': {'windows': True, 'mac': False, 'linux': False}},
-	}
+	},
 }
 
 

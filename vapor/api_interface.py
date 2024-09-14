@@ -28,7 +28,7 @@ async def async_get(url: str, **session_kwargs: Any) -> Response:  # noqa: ANN40
 		Response: A Response object containing the body and status code.
 	"""
 	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(
-		url
+		url,
 	) as response:
 		return Response(data=await response.text(), status=response.status)
 
@@ -68,7 +68,7 @@ async def _extract_game_is_native(data: Dict, app_id: str) -> bool:
 
 	json_data = data[str(app_id)]
 	return json_data.get('success', False) and json_data['data']['platforms'].get(
-		'linux', False
+		'linux', False,
 	)
 
 
@@ -141,7 +141,7 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 		return 'native'
 
 	data = await async_get(
-		f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json'
+		f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json',
 	)
 	if data.status != 200:
 		return 'pending'

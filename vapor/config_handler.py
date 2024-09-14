@@ -83,7 +83,7 @@ class Config:
 			return ''
 
 		if 'vapor' in self._config_data.sections() and key in self._config_data.options(
-			'vapor'
+			'vapor',
 		):
 			return self._config_data.get('vapor', key)
 

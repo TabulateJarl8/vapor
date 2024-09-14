@@ -15,7 +15,7 @@ def parse_args() -> None:
 		),
 	)
 	parser.add_argument(
-		'--clear-cache', action='store_true', help="Clear all of vapor's cache"
+		'--clear-cache', action='store_true', help="Clear all of vapor's cache",
 	)
 
 	args = parser.parse_args()

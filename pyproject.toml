@@ -131,6 +131,8 @@ extend-select = [
 	"ASYNC",
 	# flake8-builtins
 	"A",
+	# flake8-commas
+	"COM",
 ]
 ignore = [
 	# complains about tab indentation

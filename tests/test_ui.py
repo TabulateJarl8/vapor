@@ -126,7 +126,7 @@ def test_create_app() -> None:
 async def test_table_population_username(config: Config) -> None:
 	"""Test that table is populated correctly on submission."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -147,7 +147,7 @@ async def test_table_population_username(config: Config) -> None:
 			table = app.query_one(DataTable)
 			assert table.get_cell_at(Coordinate(0, 0)) == 'Cool Game'
 			assert table.get_cell_at(Coordinate(0, 1)) == Text(
-				'Gold', RATING_DICT['gold'][1]
+				'Gold', RATING_DICT['gold'][1],
 			)
 			assert table.get_cell_at(Coordinate(0, 2)) == Text('Denied', 'red')
 
@@ -163,7 +163,7 @@ async def test_table_population_username(config: Config) -> None:
 async def test_parse_steam_url_id(config: Config) -> None:
 	"""Test that Steam URLs (/id/) are correctly parsed."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -183,7 +183,7 @@ async def test_parse_steam_url_id(config: Config) -> None:
 async def test_parse_steam_url_profiles(config: Config) -> None:
 	"""Test that Steam URLs (/profiles/) are correctly parsed."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -204,7 +204,7 @@ async def test_parse_steam_url_profiles(config: Config) -> None:
 async def test_no_cache_user_query(config: Config) -> None:
 	"""Test that anticheat data is not present without cache."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -220,7 +220,7 @@ async def test_no_cache_user_query(config: Config) -> None:
 async def test_user_id_preservation(config: Config) -> None:
 	"""Test that user ID is preserved when the setting is on."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -246,7 +246,7 @@ async def test_user_id_preservation(config: Config) -> None:
 async def test_invalid_id_error(config: Config) -> None:
 	"""Test that an error is appropriately displayed when an invalid ID is entered."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', side_effect=Mock(side_effect=InvalidIDError)
+		'vapor.main.get_steam_user_data', side_effect=Mock(side_effect=InvalidIDError),
 	):
 		app = SteamApp(config)
 

@@ -140,7 +140,7 @@ class SteamApp(App):
 				Label(
 					Text.assemble('User Average Rating: ', ('N/A', 'magenta')),
 					id='user-rating',
-				)
+				),
 			),
 			DataTable(zebra_stripes=True),
 			id='body',
@@ -232,7 +232,7 @@ class SteamApp(App):
 						user_data.user_average.capitalize(),
 						RATING_DICT[user_data.user_average][1],
 					),
-				)
+				),
 			)
 		except InvalidIDError:
 			self.notify('Invalid Steam User ID', title='Error', severity='error')
