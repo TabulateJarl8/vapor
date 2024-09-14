@@ -128,21 +128,18 @@ ignore = [
 	# complains about tab indentation
 	"W191",
 	"D206",
-
 	# adds a line break before a class docstring
 	"D203",
-
 	# puts the first line summary of a docstring on a different line than the """
 	"D213",
-
 	# tries to add a blank line after the last docstring section
 	"D413",
-
-	"E274",
-	"S110",
+	# yells at you if you use a bool typed function argument
 	"FBT001",
 	"FBT002",
+	# yells at you for using try-except in a for loop
 	"PERF203",
+	# prohibits the use of assert which i use in testing
 	"S101",
 ]
 
