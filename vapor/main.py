@@ -1,10 +1,13 @@
+"""Main code and UI."""
+
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar, List, Optional
 from urllib.parse import urlparse
 
 from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
+from textual.binding import Binding, BindingType
 from textual.containers import Center, Container, Horizontal, VerticalScroll
 from textual.screen import ModalScreen, Screen
 from textual.validation import Regex
@@ -36,13 +39,19 @@ from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedEr
 
 
 class SettingsScreen(Screen):
-	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
+	"""Settings editor screen for modifying the config file."""
 
-	def __init__(self, config):
+	BINDINGS: ClassVar[List[BindingType]] = [
+		Binding('escape', 'app.pop_screen', 'Close Settings', show=True),
+	]
+
+	def __init__(self, config: Config) -> None:
+		"""Construct the Settings screen."""
 		self.config: Config = config
 		super().__init__()
 
 	def compose(self) -> ComposeResult:
+		"""Compose the Settings screen with textual components."""
 		with Container(id='content-container'):
 			yield Markdown('# Settings', classes='heading')
 
@@ -57,18 +66,27 @@ class SettingsScreen(Screen):
 		yield Footer()
 
 	def on_mount(self) -> None:
+		"""On mount, check that all the needed config values have been set in config.
+
+		This is useful for migration of older versions to newer versions when new
+		configuration options have been added.
+		"""
 		if not self.config.get_value('preserve-user-id'):
 			self.config.set_value('preserve-user-id', 'false')
 			self.config.write_config()
 
 	@on(Switch.Changed)
-	def on_setting_changed(self, event: Switch.Changed):
+	def on_setting_changed(self, event: Switch.Changed) -> None:
+		"""Whenever a setting has changed, update it in the config file."""
 		self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
 		self.config.write_config()
 
 
 class PrivateAccountScreen(ModalScreen):
+	"""Error screen for private account errors."""
+
 	def compose(self) -> ComposeResult:
+		"""Compose the error screen with textual components."""
 		yield Center(
 			Label(PRIVATE_ACCOUNT_HELP_MESSAGE, id='acct-info'),
 			Button('Close', variant='error', id='close-acct-screen'),
@@ -76,15 +94,24 @@ class PrivateAccountScreen(ModalScreen):
 		)
 
 	def on_button_pressed(self) -> None:
+		"""When the dismiss button is pressed, close the screen."""
 		self.dismiss()
 
 
 class SteamApp(App):
+	"""Main application class."""
+
 	CSS_PATH = 'main.tcss'
 	TITLE = 'Steam Profile Proton Compatibility Checker'
-	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
+	BINDINGS: ClassVar[List[BindingType]] = [
+		Binding('ctrl+s', "push_screen('settings')", 'Settings', show=True),
+	]
 
-	def __init__(self, custom_config: Optional[Config] = None):
+	def __init__(self, custom_config: Optional[Config] = None) -> None:
+		"""Construct the application.
+
+		This reads and instantiates the config.
+		"""
 		if custom_config is None:
 			custom_config = Config()
 
@@ -92,6 +119,7 @@ class SteamApp(App):
 		super().__init__()
 
 	def compose(self) -> ComposeResult:
+		"""Compose the application from textual components."""
 		self.show_account_help_dialog = False
 		yield Header()
 		yield Container(
@@ -117,7 +145,7 @@ class SteamApp(App):
 				Label(
 					Text.assemble('User Average Rating: ', ('N/A', 'magenta')),
 					id='user-rating',
-				)
+				),
 			),
 			DataTable(zebra_stripes=True),
 			id='body',
@@ -125,6 +153,7 @@ class SteamApp(App):
 		yield Footer()
 
 	def on_mount(self) -> None:
+		"""On mount, we initialize the table columns."""
 		# add nothing to table so that it shows up
 		table = self.query_one(DataTable)
 		table.add_columns('Title', 'Compatibility', 'Anti-Cheat Compatibility')
@@ -138,6 +167,7 @@ class SteamApp(App):
 	@on(Button.Pressed, '#submit-button')
 	@on(Input.Submitted)
 	async def populate_table(self) -> None:
+		"""Populate datatable with game information when submit button is pressed."""
 		try:
 			# disable all Input widgets
 			for item in self.query(Input):
@@ -157,26 +187,26 @@ class SteamApp(App):
 
 			# get user's API key and ID
 			api_key: Input = self.query_one('#api-key')  # type: ignore
-			id: Input = self.query_one('#user-id')  # type: ignore
+			user_id: Input = self.query_one('#user-id')  # type: ignore
 
 			self.config.set_value('steam-api-key', api_key.value)
 
 			# parse id input to add URL compatibility
-			parsed_url = urlparse(id.value)
+			parsed_url = urlparse(user_id.value)
 			if parsed_url.netloc == 'steamcommunity.com' and (
 				'/profiles/' in parsed_url.path or '/id/' in parsed_url.path
 			):
-				id.value = Path(parsed_url.path).name
-				id.refresh()
+				user_id.value = Path(parsed_url.path).name
+				user_id.refresh()
 
 			if self.config.get_value('preserve-user-id') == 'true':
-				self.config.set_value('user-id', id.value)
+				self.config.set_value('user-id', user_id.value)
 
 			# fetch anti-cheat data
 			cache = await get_anti_cheat_data()
 
 			# Fetch user data
-			user_data = await get_steam_user_data(api_key.value, id.value)
+			user_data = await get_steam_user_data(api_key.value, user_id.value)
 			table.clear()
 
 			# Add games and ratings to the DataTable
@@ -207,7 +237,7 @@ class SteamApp(App):
 						user_data.user_average.capitalize(),
 						RATING_DICT[user_data.user_average][1],
 					),
-				)
+				),
 			)
 		except InvalidIDError:
 			self.notify('Invalid Steam User ID', title='Error', severity='error')

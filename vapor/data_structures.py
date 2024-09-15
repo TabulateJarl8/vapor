@@ -1,3 +1,5 @@
+"""Vapor's global data structures."""
+
 from enum import Enum
 from typing import Dict, List, NamedTuple
 
@@ -17,6 +19,13 @@ Please change your Steam profile privacy settings:
 3. Set "Game details" to Public
 4. Uncheck the Always keep my total playtime private option
 """.strip()
+
+HTTP_SUCCESS = 200
+HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
+HTTP_FORBIDDEN = 403
+STEAM_USER_ID_LENGTH = 17
+
 
 _ANTI_CHEAT_COLORS: Dict[str, str] = {
 	'Denied': 'red',
@@ -85,8 +94,11 @@ class Game(NamedTuple):
 
 
 class SteamUserData(NamedTuple):
-	"""The data for a steam user. Includes a list of games and their respective
-	ProtonDB ratings, as well as the user's average ProtonDB rating."""
+	"""The data for a steam user.
+
+	Includes a list of games and their respective ProtonDB ratings,
+	as well as the user's average ProtonDB rating.
+	"""
 
 	game_ratings: List[Game]
 	"""The user's game ratings from ProtonDB."""

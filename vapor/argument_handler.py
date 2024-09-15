@@ -1,16 +1,21 @@
+"""Vapor argument parsing."""
+
 import argparse
 
 from vapor import cache_handler
 
 
-def parse_args():
+def parse_args() -> None:
 	"""Parse arguments from stdin."""
 	parser = argparse.ArgumentParser(
 		prog='vapor',
-		description='TUI program to check the ProtonDB compatibility of all the games of a Steam user',
+		description=(
+			'TUI program to check the ProtonDB'
+			' compatibility of all the games of a Steam user'
+		),
 	)
 	parser.add_argument(
-		'--clear-cache', action='store_true', help="Clear all of vapor's cache"
+		'--clear-cache', action='store_true', help="Clear all of vapor's cache",
 	)
 
 	args = parser.parse_args()

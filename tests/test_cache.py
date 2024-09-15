@@ -1,8 +1,11 @@
+"""Tests related to caching."""
+
 import io
 import json
 from datetime import datetime, timedelta
 
 import pytest
+from typing_extensions import Self
 
 from vapor.cache_handler import Cache
 from vapor.data_structures import AntiCheatData, AntiCheatStatus, Game
@@ -11,32 +14,39 @@ from vapor.data_structures import AntiCheatData, AntiCheatStatus, Game
 class BytesIOPath:
 	"""A Path-like object that writes to a BytesIO object instead of the filesystem."""
 
-	def __init__(self, bytes_io):
+	def __init__(self, bytes_io: io.BytesIO) -> None:
+		"""Construct a BytesIOPath object."""
 		self.bytes_io = bytes_io
 
-	def read_text(self):
+	def read_text(self) -> str:
+		"""Seek to 0 and return the reading of the BytesIO."""
 		self.bytes_io.seek(0)
 		return self.bytes_io.read().decode()
 
-	def write_text(self, text):
+	def write_text(self, text: str) -> None:
+		"""Write text to the BytesIO object."""
 		self.bytes_io.seek(0)
 		self.bytes_io.truncate()
 		self.bytes_io.write(text.encode())
 
-	def __enter__(self):
+	def __enter__(self) -> Self:
+		"""Return self."""
 		return self
 
-	def __exit__(self, exc_type, exc_value, traceback):
+	def __exit__(self, exc_type, exc_value, traceback) -> None:
+		"""Close the BytesIO object."""
 		self.bytes_io.close()
 
 
 @pytest.fixture
-def cache():
+def cache() -> Cache:
+	"""Fixture for the Cache object."""
 	return Cache()
 
 
 @pytest.fixture
-def cache_data():
+def cache_data() -> dict:
+	"""Fixture for getting the cache data."""
 	return {
 		'game_cache': {
 			'123456': {
@@ -44,7 +54,7 @@ def cache_data():
 				'rating': 'gold',
 				'playtime': 100,
 				'timestamp': (datetime.now() - timedelta(days=8)).strftime(
-					'%Y-%m-%d %H:%M:%S'
+					'%Y-%m-%d %H:%M:%S',
 				),
 			},
 			'483': {
@@ -52,25 +62,27 @@ def cache_data():
 				'rating': 'platinum',
 				'playtime': 100,
 				'timestamp': (datetime.now() - timedelta(days=1)).strftime(
-					'%Y-%m-%d %H:%M:%S'
+					'%Y-%m-%d %H:%M:%S',
 				),
 			},
 		},
 		'anticheat_cache': {
 			'data': {'789012': 'Denied'},
 			'timestamp': (datetime.now() - timedelta(days=8)).strftime(
-				'%Y-%m-%d %H:%M:%S'
+				'%Y-%m-%d %H:%M:%S',
 			),
 		},
 	}
 
 
-def test_cache_properties_without_loading(cache):
+def test_cache_properties_without_loading(cache: Cache) -> None:
+	"""Test that Cache properties are correctly before cache has been loaded."""
 	assert not cache.has_game_cache
 	assert not cache.has_anticheat_cache
 
 
-def test_load_cache(cache, cache_data):
+def test_load_cache(cache, cache_data) -> None:
+	"""Test that the Cache loads data correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.load_cache(prune=False)
@@ -83,7 +95,8 @@ def test_load_cache(cache, cache_data):
 		assert cache.get_anticheat_data('0') is None
 
 
-def test_loading_bad_file(cache):
+def test_loading_bad_file(cache) -> None:
+	"""Test that Cache behaves properly when a bad file is loaded."""
 	cache.cache_path = ''
 
 	cache_before = cache
@@ -92,7 +105,8 @@ def test_loading_bad_file(cache):
 	assert cache == cache_before
 
 
-def test_prune_bad_file(cache):
+def test_prune_bad_file(cache) -> None:
+	"""Test that pruning a bad file doesn't crash."""
 	cache.cache_path = ''
 
 	cache_before = cache
@@ -101,7 +115,8 @@ def test_prune_bad_file(cache):
 	assert cache == cache_before
 
 
-def test_invalid_datetimes(cache, cache_data):
+def test_invalid_datetimes(cache, cache_data) -> None:
+	"""Test that invalid datetimes are handled correctly."""
 	cache_data['game_cache']['999'] = {
 		'name': 'invalid datetime game',
 		'rating': 'platinum',
@@ -122,7 +137,8 @@ def test_invalid_datetimes(cache, cache_data):
 		assert 'anticheat_cache' not in updated_data
 
 
-def test_update_cache(cache, cache_data):
+def test_update_cache(cache, cache_data) -> None:
+	"""Test that cache updates are performed correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.update_cache(
@@ -131,7 +147,7 @@ def test_update_cache(cache, cache_data):
 				Game(name='Game 2', rating='silver', playtime=200, app_id='483'),
 			],
 			anti_cheat_list=[
-				AntiCheatData(app_id='987654', status=AntiCheatStatus.DENIED)
+				AntiCheatData(app_id='987654', status=AntiCheatStatus.DENIED),
 			],
 		)
 
@@ -146,7 +162,8 @@ def test_update_cache(cache, cache_data):
 		)
 
 
-def test_prune_cache(cache, cache_data):
+def test_prune_cache(cache, cache_data) -> None:
+	"""Test that cache prunes are performed correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
 		cache.load_cache(prune=True)

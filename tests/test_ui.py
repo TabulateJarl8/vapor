@@ -1,3 +1,6 @@
+"""Vapor UI tests."""
+
+from typing import Optional
 from unittest.mock import Mock, patch
 
 import pytest
@@ -32,30 +35,36 @@ STEAM_PROFILE_URL = 'https://steamcommunity.com/profiles/76561198872425795'
 
 
 @pytest.fixture
-def config():
+def config() -> Config:
+	"""Pytest fixture of Config that uses InMemoryPath."""
 	cfg = Config()
 	cfg._config_path = InMemoryPath()  # type: ignore
 	return cfg
 
 
 class MockCache:
-	def get_anticheat_data(self, id):
-		if id == '123':
+	"""Mock Cache object with set anticheat data."""
+
+	def get_anticheat_data(self, app_id: str) -> Optional[AntiCheatData]:
+		"""Return anticheat status denied for id 123."""
+		if app_id == '123':
 			return AntiCheatData('123', AntiCheatStatus.DENIED)
 		return None
 
 
 @pytest.mark.asyncio
-async def test_first_startup(config):
+async def test_first_startup(config: Config) -> None:
+	"""Test the UI at first startup."""
 	app = SteamApp(config)
 	async with app.run_test() as _:
-		assert app.query_one('#api-key').value == ''  # type: ignore
-		assert app.query_one('#user-id').value == ''  # type: ignore
-		assert app.query_one(DataTable).get_cell_at(Coordinate(0, 0)) == ''
+		assert not app.query_one('#api-key').value  # type: ignore
+		assert not app.query_one('#user-id').value  # type: ignore
+		assert not app.query_one(DataTable).get_cell_at(Coordinate(0, 0))
 
 
 @pytest.mark.asyncio
-async def test_invalid_input_data(config):
+async def test_invalid_input_data(config: Config) -> None:
+	"""Test that inputs correctly respond to invalid input."""
 	app = SteamApp(config)
 
 	async with app.run_test() as pilot:
@@ -81,7 +90,8 @@ async def test_invalid_input_data(config):
 
 
 @pytest.mark.asyncio
-async def test_valid_input_data(config):
+async def test_valid_input_data(config: Config) -> None:
+	"""Test that inputs correctly respond to valid data."""
 	app = SteamApp(config)
 
 	async with app.run_test() as pilot:
@@ -106,16 +116,18 @@ async def test_valid_input_data(config):
 		)
 
 
-def test_create_app():
-	"""This is to cover the default class instantiation with the default Config"""
+def test_create_app() -> None:
+	"""Test that app can be created successfully."""
 	with patch('vapor.config_handler.Config.read_config', return_value=True):
 		SteamApp()
 
 
 @pytest.mark.asyncio
-async def test_table_population_username(config):
+async def test_table_population_username(config: Config) -> None:
+	"""Test that table is populated correctly on submission."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -136,7 +148,8 @@ async def test_table_population_username(config):
 			table = app.query_one(DataTable)
 			assert table.get_cell_at(Coordinate(0, 0)) == 'Cool Game'
 			assert table.get_cell_at(Coordinate(0, 1)) == Text(
-				'Gold', RATING_DICT['gold'][1]
+				'Gold',
+				RATING_DICT['gold'][1],
 			)
 			assert table.get_cell_at(Coordinate(0, 2)) == Text('Denied', 'red')
 
@@ -149,9 +162,11 @@ async def test_table_population_username(config):
 
 
 @pytest.mark.asyncio
-async def test_parse_steam_url_id(config):
+async def test_parse_steam_url_id(config: Config) -> None:
+	"""Test that Steam URLs (/id/) are correctly parsed."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -168,9 +183,11 @@ async def test_parse_steam_url_id(config):
 
 
 @pytest.mark.asyncio
-async def test_parse_steam_url_profiles(config):
+async def test_parse_steam_url_profiles(config: Config) -> None:
+	"""Test that Steam URLs (/profiles/) are correctly parsed."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -188,9 +205,11 @@ async def test_parse_steam_url_profiles(config):
 
 
 @pytest.mark.asyncio
-async def test_no_cache_user_query(config):
+async def test_no_cache_user_query(config: Config) -> None:
+	"""Test that anticheat data is not present without cache."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -203,15 +222,17 @@ async def test_no_cache_user_query(config):
 
 
 @pytest.mark.asyncio
-async def test_user_id_preservation(config):
+async def test_user_id_preservation(config: Config) -> None:
+	"""Test that user ID is preserved when the setting is on."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
 		async with app.run_test() as pilot:
 			# make sure theres no username by default
-			assert app.config.get_value('user-id') == ''
+			assert not app.config.get_value('user-id')
 
 			# set the preserve user id config option
 			app.config.set_value('preserve-user-id', 'true')
@@ -228,9 +249,11 @@ async def test_user_id_preservation(config):
 
 
 @pytest.mark.asyncio
-async def test_invalid_id_error(config):
+async def test_invalid_id_error(config: Config) -> None:
+	"""Test that an error is appropriately displayed when an invalid ID is entered."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', side_effect=Mock(side_effect=InvalidIDError)
+		'vapor.main.get_steam_user_data',
+		side_effect=Mock(side_effect=InvalidIDError),
 	):
 		app = SteamApp(config)
 
@@ -243,7 +266,8 @@ async def test_invalid_id_error(config):
 
 
 @pytest.mark.asyncio
-async def test_unauthorized_error(config):
+async def test_unauthorized_error(config: Config) -> None:
+	"""Test that invalid Steam API keys display the appropriate error."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
 		'vapor.main.get_steam_user_data',
 		side_effect=Mock(side_effect=UnauthorizedError),
@@ -259,7 +283,8 @@ async def test_unauthorized_error(config):
 
 
 @pytest.mark.asyncio
-async def test_private_account_screen(config):
+async def test_private_account_screen(config: Config) -> None:
+	"""Test that the private account error screen shows."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
 		'vapor.main.get_steam_user_data',
 		side_effect=Mock(side_effect=PrivateAccountError),
@@ -281,11 +306,12 @@ async def test_private_account_screen(config):
 
 
 @pytest.mark.asyncio
-async def test_settings_screen(config):
+async def test_settings_screen(config: Config) -> None:
+	"""Test that the settings screen works."""
 	app = SteamApp(config)
 
 	# check that theres no default value
-	assert app.config.get_value('preserve-user-id') == ''
+	assert not app.config.get_value('preserve-user-id')
 
 	async with app.run_test(size=(105, 24)) as pilot:
 		# open the settings screen

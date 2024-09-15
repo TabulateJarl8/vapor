@@ -1,3 +1,5 @@
+"""Vapor cache handling."""
+
 import json
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
@@ -17,13 +19,20 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 class Cache:
-	def __init__(self):
+	"""Cache wrapper class.
+
+	Includes methods to aid with loading, updating, pruning, etc.
+	"""
+
+	def __init__(self) -> None:
+		"""Construct a new Cache object."""
 		self.cache_path = CACHE_PATH
 		self._games_data: Dict[str, Tuple[Game, str]] = {}
 		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
 
-	def __repr__(self):
+	def __repr__(self) -> str:
+		"""Return the string representation of the Cache object."""
 		return f'Cache({self.__dict__!r})'
 
 	def _serialize_game_data(self) -> dict:
@@ -95,11 +104,12 @@ class Cache:
 
 		return None
 
-	def load_cache(self, prune=True) -> Self:
+	def load_cache(self, prune: Optional[bool] = True) -> Self:
 		"""Load and deserialize the cache.
 
 		Args:
-			prune (bool, optional): Whether or not to prune old cache entries. Defaults to True.
+			prune (bool, optional): Whether or not to prune old cache
+				entries. Defaults to True.
 
 		Returns:
 			Self: self.
@@ -143,8 +153,10 @@ class Cache:
 		"""Update the cache file with new game and anticheat data.
 
 		Args:
-			game_list (Optional[List[Game]], optional): List of new game data. Defaults to None.
-			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new anticheat data. Defaults to None.
+			game_list (Optional[List[Game]], optional): List of new game data.
+				Defaults to None.
+			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new
+				anticheat data. Defaults to None.
 
 		Returns:
 			Self: self.
@@ -205,7 +217,7 @@ class Cache:
 		if 'anticheat_cache' in data:
 			try:
 				parsed_date = datetime.strptime(
-					data['anticheat_cache']['timestamp'], TIMESTAMP_FORMAT
+					data['anticheat_cache']['timestamp'], TIMESTAMP_FORMAT,
 				)
 				if (datetime.now() - parsed_date).days > CACHE_INVALIDATION_DAYS:
 					# cache is too old, delete game

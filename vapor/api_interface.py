@@ -1,3 +1,5 @@
+"""Steam and ProtonDB API helper functions."""
+
 import json
 from typing import Any, Dict, List, Optional
 
@@ -5,7 +7,12 @@ import aiohttp
 
 from vapor.cache_handler import Cache
 from vapor.data_structures import (
+	HTTP_BAD_REQUEST,
+	HTTP_FORBIDDEN,
+	HTTP_SUCCESS,
+	HTTP_UNAUTHORIZED,
 	RATING_DICT,
+	STEAM_USER_ID_LENGTH,
 	AntiCheatData,
 	AntiCheatStatus,
 	Game,
@@ -26,7 +33,7 @@ async def async_get(url: str, **session_kwargs: Any) -> Response:
 		Response: A Response object containing the body and status code.
 	"""
 	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(
-		url
+		url,
 	) as response:
 		return Response(data=await response.text(), status=response.status)
 
@@ -43,17 +50,16 @@ async def check_game_is_native(app_id: str) -> bool:
 	data = await async_get(
 		f'https://store.steampowered.com/api/appdetails?appids={app_id}&filters=platforms',
 	)
-	if data.status != 200:
+	if data.status != HTTP_SUCCESS:
 		return False
 
 	json_data = json.loads(data.data)
 
-	return await parse_steam_game_platform_info(json_data, app_id)
+	return _extract_game_is_native(json_data, app_id)
 
 
-async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
-	"""Parse data from the Steam API and return whether or not the game is
-	native to Linux.
+def _extract_game_is_native(data: Dict, app_id: str) -> bool:
+	"""Extract whether or not a game is Linux native from API data.
 
 	Args:
 		data (Dict): the data from the Steam API.
@@ -67,13 +73,15 @@ async def parse_steam_game_platform_info(data: Dict, app_id: str) -> bool:
 
 	json_data = data[str(app_id)]
 	return json_data.get('success', False) and json_data['data']['platforms'].get(
-		'linux', False
+		'linux',
+		False,
 	)
 
 
 async def get_anti_cheat_data() -> Optional[Cache]:
-	"""Get's the anti-cheat data from cache. If expired, it will fetch new
-	data and write that to cache.
+	"""Get the anti-cheat data from cache.
+
+	If expired, this function will fetch new data and write that to cache.
 
 	Returns:
 		Optional[Cache]: The cache containing anti-cheat data.
@@ -86,7 +94,7 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 		'https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json',
 	)
 
-	if data.status != 200:
+	if data.status != HTTP_SUCCESS:
 		return None
 
 	try:
@@ -94,16 +102,15 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 	except json.JSONDecodeError:
 		return None
 
-	deserialized_data = await parse_anti_cheat_data(anti_cheat_data)
+	deserialized_data = parse_anti_cheat_data(anti_cheat_data)
 
 	cache.update_cache(anti_cheat_list=deserialized_data)
 
 	return cache
 
 
-async def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
-	"""Parse data from AreWeAntiCheatYet and return a list of
-	AntiCheatData instances.
+def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
+	"""Parse and return data from AreWeAntiCheatYet.
 
 	Args:
 		data (List[Dict]): The data from AreWeAntiCheatYet
@@ -125,7 +132,7 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	"""Get the average game rating from ProtonDB.
 
 	Args:
-		id (str): The game ID.
+		app_id (str): The game ID.
 		cache (Cache): The game cache.
 
 	Returns:
@@ -140,9 +147,9 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 		return 'native'
 
 	data = await async_get(
-		f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json'
+		f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json',
 	)
-	if data.status != 200:
+	if data.status != HTTP_SUCCESS:
 		return 'pending'
 
 	json_data = json.loads(data.data)
@@ -168,7 +175,7 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 		f'https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={api_key}&vanityurl={name}',
 	)
 
-	if data.status == 403:
+	if data.status == HTTP_FORBIDDEN:
 		raise UnauthorizedError
 
 	user_data = json.loads(data.data)
@@ -178,12 +185,12 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 	return user_data['response']['steamid']
 
 
-async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
+async def get_steam_user_data(api_key: str, user_id: str) -> SteamUserData:
 	"""Fetch a steam user's games and get their ratings from ProtonDB.
 
 	Args:
 		api_key (str): Steam API key.
-		id (str): The user's Steam ID or vanity name.
+		user_id (str): The user's Steam ID or vanity name.
 
 	Raises:
 		InvalidIDError: If an invalid Steam ID is provided.
@@ -193,9 +200,9 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 		SteamUserData: The Steam user's data.
 	"""
 	# check if ID is a Steam ID or vanity URL
-	if len(id) != 17 or not id.startswith('76561198'):
+	if len(user_id) != STEAM_USER_ID_LENGTH or not user_id.startswith('76561198'):
 		try:
-			id = await resolve_vanity_name(api_key, id)
+			user_id = await resolve_vanity_name(api_key, user_id)
 		except UnauthorizedError as e:
 			raise UnauthorizedError from e
 		except InvalidIDError:
@@ -204,11 +211,11 @@ async def get_steam_user_data(api_key: str, id: str) -> SteamUserData:
 	cache = Cache().load_cache()
 
 	data = await async_get(
-		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={id}&format=json&include_appinfo=1&include_played_free_games=1',
+		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={user_id}&format=json&include_appinfo=1&include_played_free_games=1',
 	)
-	if data.status == 400:
+	if data.status == HTTP_BAD_REQUEST:
 		raise InvalidIDError
-	if data.status == 401:
+	if data.status == HTTP_UNAUTHORIZED:
 		raise UnauthorizedError
 
 	data = json.loads(data.data)
@@ -228,8 +235,11 @@ async def parse_steam_user_games(
 
 	Returns:
 		SteamUserData: the user's Steam games and ProtonDB ratings
-	"""
 
+	Raises:
+		PrivateAccountError: if `games` is not present in `data['response']`
+			(the user's account was found but is private)
+	"""
 	data = data['response']
 
 	if 'games' not in data:
@@ -258,7 +268,8 @@ async def parse_steam_user_games(
 		if cache.get_game_data(game.app_id) is not None
 	]
 
-	# we do this in a seperate loop so that we're not mutating the iterable during iteration
+	# we do this in a seperate loop so that we're not mutating the
+	# iterable during iteration
 	for game in games_to_remove:
 		game_ratings_copy.remove(game)
 
@@ -268,8 +279,8 @@ async def parse_steam_user_games(
 	# compute user average
 	game_rating_nums = [RATING_DICT[game.rating][0] for game in game_ratings]
 	user_average = round(sum(game_rating_nums) / len(game_rating_nums))
-	user_average_text = [
+	user_average_text = next(
 		key for key, value in RATING_DICT.items() if value[0] == user_average
-	][0]
+	)
 
 	return SteamUserData(game_ratings=game_ratings, user_average=user_average_text)
