@@ -149,6 +149,8 @@ extend-select = [
 	"FURB",
 	# pydoclint
 	"DOC",
+	# ruff rules
+	"RUF",
 ]
 
 ignore = [

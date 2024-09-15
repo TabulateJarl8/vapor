@@ -55,10 +55,10 @@ async def check_game_is_native(app_id: str) -> bool:
 
 	json_data = json.loads(data.data)
 
-	return await _extract_game_is_native(json_data, app_id)
+	return _extract_game_is_native(json_data, app_id)
 
 
-async def _extract_game_is_native(data: Dict, app_id: str) -> bool:
+def _extract_game_is_native(data: Dict, app_id: str) -> bool:
 	"""Extract whether or not a game is Linux native from API data.
 
 	Args:
@@ -102,14 +102,14 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 	except json.JSONDecodeError:
 		return None
 
-	deserialized_data = await parse_anti_cheat_data(anti_cheat_data)
+	deserialized_data = parse_anti_cheat_data(anti_cheat_data)
 
 	cache.update_cache(anti_cheat_list=deserialized_data)
 
 	return cache
 
 
-async def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
+def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
 	"""Parse and return data from AreWeAntiCheatYet.
 
 	Args:
@@ -279,8 +279,8 @@ async def parse_steam_user_games(
 	# compute user average
 	game_rating_nums = [RATING_DICT[game.rating][0] for game in game_ratings]
 	user_average = round(sum(game_rating_nums) / len(game_rating_nums))
-	user_average_text = [
+	user_average_text = next(
 		key for key, value in RATING_DICT.items() if value[0] == user_average
-	][0]
+	)
 
 	return SteamUserData(game_ratings=game_ratings, user_average=user_average_text)

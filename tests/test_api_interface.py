@@ -75,18 +75,16 @@ class MockCache:
 		"""
 
 
-@pytest.mark.asyncio
-async def test_parse_steam_game_data() -> None:
+def test_parse_steam_game_data() -> None:
 	"""Test that Steam data is correctly parsed."""
-	assert await _extract_game_is_native(STEAM_GAME_DATA, '123456')
-	assert not await _extract_game_is_native(STEAM_GAME_DATA, '789012')
-	assert not await _extract_game_is_native(STEAM_GAME_DATA, '123')
+	assert _extract_game_is_native(STEAM_GAME_DATA, '123456')
+	assert not _extract_game_is_native(STEAM_GAME_DATA, '789012')
+	assert not _extract_game_is_native(STEAM_GAME_DATA, '123')
 
 
-@pytest.mark.asyncio
-async def test_parse_anti_cheat_data() -> None:
+def test_parse_anti_cheat_data() -> None:
 	"""Test that anti-cheat data is parsed correctly."""
-	result = await parse_anti_cheat_data(ANTI_CHEAT_DATA)
+	result = parse_anti_cheat_data(ANTI_CHEAT_DATA)
 	assert len(result) == 2
 	assert result[0].app_id == '123456'
 	assert result[0].status == AntiCheatStatus.DENIED

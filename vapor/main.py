@@ -1,12 +1,13 @@
 """Main code and UI."""
 
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar, List, Optional
 from urllib.parse import urlparse
 
 from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
+from textual.binding import Binding, BindingType
 from textual.containers import Center, Container, Horizontal, VerticalScroll
 from textual.screen import ModalScreen, Screen
 from textual.validation import Regex
@@ -40,7 +41,9 @@ from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedEr
 class SettingsScreen(Screen):
 	"""Settings editor screen for modifying the config file."""
 
-	BINDINGS = [('escape', 'app.pop_screen', 'Close Settings')]
+	BINDINGS: ClassVar[List[BindingType]] = [
+		Binding('escape', 'app.pop_screen', 'Close Settings', show=True),
+	]
 
 	def __init__(self, config: Config) -> None:
 		"""Construct the Settings screen."""
@@ -100,7 +103,9 @@ class SteamApp(App):
 
 	CSS_PATH = 'main.tcss'
 	TITLE = 'Steam Profile Proton Compatibility Checker'
-	BINDINGS = [('ctrl+s', "push_screen('settings')", 'Settings')]
+	BINDINGS: ClassVar[List[BindingType]] = [
+		Binding('ctrl+s', "push_screen('settings')", 'Settings', show=True),
+	]
 
 	def __init__(self, custom_config: Optional[Config] = None) -> None:
 		"""Construct the application.
