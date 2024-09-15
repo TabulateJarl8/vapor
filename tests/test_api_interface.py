@@ -40,6 +40,10 @@ STEAM_GAME_PLATFORM_DATA = {
 		'success': True,
 		'data': {'platforms': {'windows': True, 'mac': False, 'linux': False}},
 	},
+	'456': {
+		'success': True,
+		'data': {'platforms': {'windows': False, 'mac': True, 'linux': True}},
+	},
 }
 
 
@@ -50,7 +54,7 @@ class MockCache:
 		"""Construct a new MockCache object."""
 		self.has_game_cache = has_game
 
-	def get_game_data(self, app_id: None) -> Game:  # noqa: ARG002
+	def get_game_data(self, app_id: None) -> Game:
 		"""Return a set Game data for testing.
 
 		Args:
@@ -112,9 +116,18 @@ async def test_parse_steam_user_priv_acct() -> None:
 
 @pytest.mark.asyncio
 async def test_check_game_is_native() -> None:
-	"""Test that native games are correctly detected."""
+	"""Test that native games are correctly detected and errors are handled."""
 	with patch(
 		'vapor.api_interface.async_get',
 		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200),
 	):
 		assert not await check_game_is_native('123')
+		assert await check_game_is_native('456')
+
+	with patch(
+		'vapor.api_interface.async_get',
+		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 401),
+	):
+		# this should say false even though 456 is native because it
+		# should fail with a non-200 status code
+		assert not await check_game_is_native('456')

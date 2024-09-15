@@ -7,7 +7,12 @@ import aiohttp
 
 from vapor.cache_handler import Cache
 from vapor.data_structures import (
+	HTTP_BAD_REQUEST,
+	HTTP_FORBIDDEN,
+	HTTP_SUCCESS,
+	HTTP_UNAUTHORIZED,
 	RATING_DICT,
+	STEAM_USER_ID_LENGTH,
 	AntiCheatData,
 	AntiCheatStatus,
 	Game,
@@ -17,7 +22,7 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-async def async_get(url: str, **session_kwargs: Any) -> Response:  # noqa: ANN401
+async def async_get(url: str, **session_kwargs: Any) -> Response:
 	"""Async get request for fetching web content.
 
 	Args:
@@ -45,7 +50,7 @@ async def check_game_is_native(app_id: str) -> bool:
 	data = await async_get(
 		f'https://store.steampowered.com/api/appdetails?appids={app_id}&filters=platforms',
 	)
-	if data.status != 200:
+	if data.status != HTTP_SUCCESS:
 		return False
 
 	json_data = json.loads(data.data)
@@ -68,7 +73,8 @@ async def _extract_game_is_native(data: Dict, app_id: str) -> bool:
 
 	json_data = data[str(app_id)]
 	return json_data.get('success', False) and json_data['data']['platforms'].get(
-		'linux', False,
+		'linux',
+		False,
 	)
 
 
@@ -88,7 +94,7 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 		'https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json',
 	)
 
-	if data.status != 200:
+	if data.status != HTTP_SUCCESS:
 		return None
 
 	try:
@@ -143,7 +149,7 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	data = await async_get(
 		f'https://www.protondb.com/api/v1/reports/summaries/{app_id}.json',
 	)
-	if data.status != 200:
+	if data.status != HTTP_SUCCESS:
 		return 'pending'
 
 	json_data = json.loads(data.data)
@@ -169,7 +175,7 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 		f'https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={api_key}&vanityurl={name}',
 	)
 
-	if data.status == 403:
+	if data.status == HTTP_FORBIDDEN:
 		raise UnauthorizedError
 
 	user_data = json.loads(data.data)
@@ -179,12 +185,12 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 	return user_data['response']['steamid']
 
 
-async def get_steam_user_data(api_key: str, app_id: str) -> SteamUserData:
+async def get_steam_user_data(api_key: str, user_id: str) -> SteamUserData:
 	"""Fetch a steam user's games and get their ratings from ProtonDB.
 
 	Args:
 		api_key (str): Steam API key.
-		app_id (str): The user's Steam ID or vanity name.
+		user_id (str): The user's Steam ID or vanity name.
 
 	Raises:
 		InvalidIDError: If an invalid Steam ID is provided.
@@ -194,9 +200,9 @@ async def get_steam_user_data(api_key: str, app_id: str) -> SteamUserData:
 		SteamUserData: The Steam user's data.
 	"""
 	# check if ID is a Steam ID or vanity URL
-	if len(app_id) != 17 or not app_id.startswith('76561198'):
+	if len(user_id) != STEAM_USER_ID_LENGTH or not user_id.startswith('76561198'):
 		try:
-			app_id = await resolve_vanity_name(api_key, app_id)
+			user_id = await resolve_vanity_name(api_key, user_id)
 		except UnauthorizedError as e:
 			raise UnauthorizedError from e
 		except InvalidIDError:
@@ -205,11 +211,11 @@ async def get_steam_user_data(api_key: str, app_id: str) -> SteamUserData:
 	cache = Cache().load_cache()
 
 	data = await async_get(
-		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={app_id}&format=json&include_appinfo=1&include_played_free_games=1',
+		f'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={api_key}&steamid={user_id}&format=json&include_appinfo=1&include_played_free_games=1',
 	)
-	if data.status == 400:
+	if data.status == HTTP_BAD_REQUEST:
 		raise InvalidIDError
-	if data.status == 401:
+	if data.status == HTTP_UNAUTHORIZED:
 		raise UnauthorizedError
 
 	data = json.loads(data.data)
@@ -229,6 +235,10 @@ async def parse_steam_user_games(
 
 	Returns:
 		SteamUserData: the user's Steam games and ProtonDB ratings
+
+	Raises:
+		PrivateAccountError: if `games` is not present in `data['response']`
+			(the user's account was found but is private)
 	"""
 	data = data['response']
 

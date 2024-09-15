@@ -57,9 +57,9 @@ async def test_first_startup(config: Config) -> None:
 	"""Test the UI at first startup."""
 	app = SteamApp(config)
 	async with app.run_test() as _:
-		assert app.query_one('#api-key').value == ''  # type: ignore
-		assert app.query_one('#user-id').value == ''  # type: ignore
-		assert app.query_one(DataTable).get_cell_at(Coordinate(0, 0)) == ''
+		assert not app.query_one('#api-key').value  # type: ignore
+		assert not app.query_one('#user-id').value  # type: ignore
+		assert not app.query_one(DataTable).get_cell_at(Coordinate(0, 0))
 
 
 @pytest.mark.asyncio
@@ -126,7 +126,8 @@ def test_create_app() -> None:
 async def test_table_population_username(config: Config) -> None:
 	"""Test that table is populated correctly on submission."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -147,7 +148,8 @@ async def test_table_population_username(config: Config) -> None:
 			table = app.query_one(DataTable)
 			assert table.get_cell_at(Coordinate(0, 0)) == 'Cool Game'
 			assert table.get_cell_at(Coordinate(0, 1)) == Text(
-				'Gold', RATING_DICT['gold'][1],
+				'Gold',
+				RATING_DICT['gold'][1],
 			)
 			assert table.get_cell_at(Coordinate(0, 2)) == Text('Denied', 'red')
 
@@ -163,7 +165,8 @@ async def test_table_population_username(config: Config) -> None:
 async def test_parse_steam_url_id(config: Config) -> None:
 	"""Test that Steam URLs (/id/) are correctly parsed."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -183,7 +186,8 @@ async def test_parse_steam_url_id(config: Config) -> None:
 async def test_parse_steam_url_profiles(config: Config) -> None:
 	"""Test that Steam URLs (/profiles/) are correctly parsed."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=MockCache()), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -204,7 +208,8 @@ async def test_parse_steam_url_profiles(config: Config) -> None:
 async def test_no_cache_user_query(config: Config) -> None:
 	"""Test that anticheat data is not present without cache."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
@@ -220,13 +225,14 @@ async def test_no_cache_user_query(config: Config) -> None:
 async def test_user_id_preservation(config: Config) -> None:
 	"""Test that user ID is preserved when the setting is on."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', return_value=STEAM_USER_DATA,
+		'vapor.main.get_steam_user_data',
+		return_value=STEAM_USER_DATA,
 	):
 		app = SteamApp(config)
 
 		async with app.run_test() as pilot:
 			# make sure theres no username by default
-			assert app.config.get_value('user-id') == ''
+			assert not app.config.get_value('user-id')
 
 			# set the preserve user id config option
 			app.config.set_value('preserve-user-id', 'true')
@@ -246,7 +252,8 @@ async def test_user_id_preservation(config: Config) -> None:
 async def test_invalid_id_error(config: Config) -> None:
 	"""Test that an error is appropriately displayed when an invalid ID is entered."""
 	with patch('vapor.main.get_anti_cheat_data', return_value=None), patch(
-		'vapor.main.get_steam_user_data', side_effect=Mock(side_effect=InvalidIDError),
+		'vapor.main.get_steam_user_data',
+		side_effect=Mock(side_effect=InvalidIDError),
 	):
 		app = SteamApp(config)
 
@@ -304,7 +311,7 @@ async def test_settings_screen(config: Config) -> None:
 	app = SteamApp(config)
 
 	# check that theres no default value
-	assert app.config.get_value('preserve-user-id') == ''
+	assert not app.config.get_value('preserve-user-id')
 
 	async with app.run_test(size=(105, 24)) as pilot:
 		# open the settings screen

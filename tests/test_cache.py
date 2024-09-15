@@ -33,7 +33,7 @@ class BytesIOPath:
 		"""Return self."""
 		return self
 
-	def __exit__(self, exc_type, exc_value, traceback) -> None:  # noqa: ANN001
+	def __exit__(self, exc_type, exc_value, traceback) -> None:
 		"""Close the BytesIO object."""
 		self.bytes_io.close()
 
@@ -81,7 +81,7 @@ def test_cache_properties_without_loading(cache: Cache) -> None:
 	assert not cache.has_anticheat_cache
 
 
-def test_load_cache(cache, cache_data) -> None:  # noqa: ANN001
+def test_load_cache(cache, cache_data) -> None:
 	"""Test that the Cache loads data correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
@@ -95,7 +95,7 @@ def test_load_cache(cache, cache_data) -> None:  # noqa: ANN001
 		assert cache.get_anticheat_data('0') is None
 
 
-def test_loading_bad_file(cache) -> None:  # noqa: ANN001
+def test_loading_bad_file(cache) -> None:
 	"""Test that Cache behaves properly when a bad file is loaded."""
 	cache.cache_path = ''
 
@@ -105,7 +105,7 @@ def test_loading_bad_file(cache) -> None:  # noqa: ANN001
 	assert cache == cache_before
 
 
-def test_prune_bad_file(cache) -> None:  # noqa: ANN001
+def test_prune_bad_file(cache) -> None:
 	"""Test that pruning a bad file doesn't crash."""
 	cache.cache_path = ''
 
@@ -115,7 +115,7 @@ def test_prune_bad_file(cache) -> None:  # noqa: ANN001
 	assert cache == cache_before
 
 
-def test_invalid_datetimes(cache, cache_data) -> None:  # noqa: ANN001
+def test_invalid_datetimes(cache, cache_data) -> None:
 	"""Test that invalid datetimes are handled correctly."""
 	cache_data['game_cache']['999'] = {
 		'name': 'invalid datetime game',
@@ -137,7 +137,7 @@ def test_invalid_datetimes(cache, cache_data) -> None:  # noqa: ANN001
 		assert 'anticheat_cache' not in updated_data
 
 
-def test_update_cache(cache, cache_data) -> None:  # noqa: ANN001
+def test_update_cache(cache, cache_data) -> None:
 	"""Test that cache updates are performed correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)
@@ -162,7 +162,7 @@ def test_update_cache(cache, cache_data) -> None:  # noqa: ANN001
 		)
 
 
-def test_prune_cache(cache, cache_data) -> None:  # noqa: ANN001
+def test_prune_cache(cache, cache_data) -> None:
 	"""Test that cache prunes are performed correctly."""
 	with io.BytesIO(json.dumps(cache_data).encode()) as f:
 		cache.cache_path = BytesIOPath(f)

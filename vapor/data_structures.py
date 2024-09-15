@@ -20,6 +20,13 @@ Please change your Steam profile privacy settings:
 4. Uncheck the Always keep my total playtime private option
 """.strip()
 
+HTTP_SUCCESS = 200
+HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
+HTTP_FORBIDDEN = 403
+STEAM_USER_ID_LENGTH = 17
+
+
 _ANTI_CHEAT_COLORS: Dict[str, str] = {
 	'Denied': 'red',
 	'Broken': 'dark_orange3',

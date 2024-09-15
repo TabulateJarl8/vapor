@@ -17,7 +17,7 @@ def test_parse_args_without_clear_cache() -> None:
 
 
 @patch('pathlib.Path.unlink', **{'other.side_effect': FileNotFoundError})
-def test_parse_args_missing_cache(mock_unlink) -> None:  # noqa: ANN001
+def test_parse_args_missing_cache(mock_unlink) -> None:
 	"""Test parsing arguments when cache file is missing."""
 	with patch(
 		'argparse.ArgumentParser.parse_args',
