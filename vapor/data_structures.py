@@ -258,7 +258,7 @@ class SteamAPIUserDataResponse(TypedDict):
 	"""Defines spec for Steam API user data for owned games.
 
 	Attributes:
-		response (_SteamAPIUserGameList): The actual data of the response is stored in here
+		response (_SteamAPIUserGameList): The data of the response is stored in here
 	"""
 
 	response: _SteamAPIUserGameList
