@@ -2,11 +2,20 @@
 
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from typing_extensions import Self
+from typing_extensions import Self, override
 
-from vapor.data_structures import CONFIG_DIR, AntiCheatData, AntiCheatStatus, Game
+from vapor.data_structures import (
+	CONFIG_DIR,
+	AntiCheatData,
+	AntiCheatStatus,
+	CacheFile,
+	Game,
+	SerializedAnticheatData,
+	SerializedGameData,
+)
 
 CACHE_PATH = CONFIG_DIR / 'cache.json'
 """The path to the cache file."""
@@ -26,20 +35,21 @@ class Cache:
 
 	def __init__(self) -> None:
 		"""Construct a new Cache object."""
-		self.cache_path = CACHE_PATH
+		self.cache_path: Path = CACHE_PATH
 		self._games_data: Dict[str, Tuple[Game, str]] = {}
 		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
 
+	@override
 	def __repr__(self) -> str:
 		"""Return the string representation of the Cache object."""
 		return f'Cache({self.__dict__!r})'
 
-	def _serialize_game_data(self) -> dict:
+	def _serialize_game_data(self) -> Dict[str, SerializedGameData]:
 		"""Serialize the game data into a valid JSON dict.
 
 		Returns:
-			dict: Valid JSON dict.
+			Dict[str, SerializedGameData]: Valid JSON dict.
 		"""
 		return {
 			app_id: {
@@ -50,11 +60,11 @@ class Cache:
 			for app_id, game in self._games_data.items()
 		}
 
-	def _serialize_anti_cheat_data(self) -> dict:
+	def _serialize_anti_cheat_data(self) -> SerializedAnticheatData:
 		"""Serialize the anticheat data into a valid JSON dict.
 
 		Returns:
-			dict: Valid JSON dict.
+			SerializedAnticheatData: Valid JSON dict.
 		"""
 		return {
 			'data': {
@@ -118,7 +128,7 @@ class Cache:
 			self.prune_cache()
 
 		try:
-			data = json.loads(self.cache_path.read_text())
+			data: CacheFile = json.loads(self.cache_path.read_text())
 		except Exception:
 			return self
 
@@ -197,7 +207,7 @@ class Cache:
 			Self: self.
 		"""
 		try:
-			data = json.loads(self.cache_path.read_text())
+			data: CacheFile = json.loads(self.cache_path.read_text())
 		except Exception:
 			return self
 
@@ -217,7 +227,8 @@ class Cache:
 		if 'anticheat_cache' in data:
 			try:
 				parsed_date = datetime.strptime(
-					data['anticheat_cache']['timestamp'], TIMESTAMP_FORMAT,
+					data['anticheat_cache']['timestamp'],
+					TIMESTAMP_FORMAT,
 				)
 				if (datetime.now() - parsed_date).days > CACHE_INVALIDATION_DAYS:
 					# cache is too old, delete game

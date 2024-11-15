@@ -15,10 +15,12 @@ def parse_args() -> None:
 		),
 	)
 	parser.add_argument(
-		'--clear-cache', action='store_true', help="Clear all of vapor's cache",
+		'--clear-cache',
+		action='store_true',
+		help="Clear all of vapor's cache",
 	)
 
 	args = parser.parse_args()
 
-	if args.clear_cache:
+	if args.clear_cache:  # pyright: ignore[reportAny]
 		cache_handler.CACHE_PATH.unlink(missing_ok=True)

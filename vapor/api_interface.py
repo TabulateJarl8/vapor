@@ -13,16 +13,21 @@ from vapor.data_structures import (
 	HTTP_UNAUTHORIZED,
 	RATING_DICT,
 	STEAM_USER_ID_LENGTH,
+	AntiCheatAPIResponse,
 	AntiCheatData,
 	AntiCheatStatus,
 	Game,
+	ProtonDBAPIResponse,
 	Response,
+	SteamAPINameResolutionResponse,
+	SteamAPIPlatformsResponse,
+	SteamAPIUserDataResponse,
 	SteamUserData,
 )
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-async def async_get(url: str, **session_kwargs: Any) -> Response:
+async def async_get(url: str, **session_kwargs: Any) -> Response:  # pyright: ignore[reportAny]
 	"""Async get request for fetching web content.
 
 	Args:
@@ -32,7 +37,7 @@ async def async_get(url: str, **session_kwargs: Any) -> Response:
 	Returns:
 		Response: A Response object containing the body and status code.
 	"""
-	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(
+	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(  # pyright: ignore[reportAny]
 		url,
 	) as response:
 		return Response(data=await response.text(), status=response.status)
@@ -53,16 +58,19 @@ async def check_game_is_native(app_id: str) -> bool:
 	if data.status != HTTP_SUCCESS:
 		return False
 
-	json_data = json.loads(data.data)
+	json_data: Dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
 
 	return _extract_game_is_native(json_data, app_id)
 
 
-def _extract_game_is_native(data: Dict, app_id: str) -> bool:
+def _extract_game_is_native(
+	data: Dict[str, SteamAPIPlatformsResponse],
+	app_id: str,
+) -> bool:
 	"""Extract whether or not a game is Linux native from API data.
 
 	Args:
-		data (Dict): the data from the Steam API.
+		data (Dict[str, SteamAPIPlatformsResponse]): the data from the Steam API.
 		app_id (str): The App ID of the game
 
 	Returns:
@@ -98,7 +106,7 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 		return None
 
 	try:
-		anti_cheat_data = json.loads(data.data)
+		anti_cheat_data: List[AntiCheatAPIResponse] = json.loads(data.data)
 	except json.JSONDecodeError:
 		return None
 
@@ -109,11 +117,11 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 	return cache
 
 
-def parse_anti_cheat_data(data: List[Dict]) -> List[AntiCheatData]:
+def parse_anti_cheat_data(data: List[AntiCheatAPIResponse]) -> List[AntiCheatData]:
 	"""Parse and return data from AreWeAntiCheatYet.
 
 	Args:
-		data (List[Dict]): The data from AreWeAntiCheatYet
+		data (List[AntiCheatAPIResponse]): The data from AreWeAntiCheatYet
 
 	Returns:
 		List[AntiCheatData]: the anticheat statuses of each game in the given data
@@ -152,7 +160,7 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	if data.status != HTTP_SUCCESS:
 		return 'pending'
 
-	json_data = json.loads(data.data)
+	json_data: ProtonDBAPIResponse = json.loads(data.data)
 
 	return json_data.get('tier', 'pending')
 
@@ -178,7 +186,7 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 	if data.status == HTTP_FORBIDDEN:
 		raise UnauthorizedError
 
-	user_data = json.loads(data.data)
+	user_data: SteamAPINameResolutionResponse = json.loads(data.data)
 	if 'response' not in user_data or user_data['response']['success'] != 1:
 		raise InvalidIDError
 
@@ -218,19 +226,19 @@ async def get_steam_user_data(api_key: str, user_id: str) -> SteamUserData:
 	if data.status == HTTP_UNAUTHORIZED:
 		raise UnauthorizedError
 
-	data = json.loads(data.data)
+	user_data: SteamAPIUserDataResponse = json.loads(data.data)
 
-	return await parse_steam_user_games(data, cache)
+	return await parse_steam_user_games(user_data, cache)
 
 
 async def parse_steam_user_games(
-	data: Dict,
+	data: SteamAPIUserDataResponse,
 	cache: Cache,
 ) -> SteamUserData:
 	"""Parse user data from the Steam API and return information on their games.
 
 	Args:
-		data (Dict): user data from the Steam API
+		data (SteamAPIUserDataResponse): user data from the Steam API
 		cache (Cache): the loaded Cache file
 
 	Returns:
@@ -240,12 +248,12 @@ async def parse_steam_user_games(
 		PrivateAccountError: if `games` is not present in `data['response']`
 			(the user's account was found but is private)
 	"""
-	data = data['response']
+	game_data = data['response']
 
-	if 'games' not in data:
+	if 'games' not in game_data:
 		raise PrivateAccountError
 
-	games = data['games']
+	games = game_data['games']
 	game_ratings = [
 		Game(
 			name=game['name'],

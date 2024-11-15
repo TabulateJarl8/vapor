@@ -1,7 +1,7 @@
 """Main code and UI."""
 
 from pathlib import Path
-from typing import ClassVar, List, Optional
+from typing import ClassVar, List, Optional, Union, cast
 from urllib.parse import urlparse
 
 from rich.text import Text
@@ -10,6 +10,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Center, Container, Horizontal, VerticalScroll
 from textual.screen import ModalScreen, Screen
+from textual.types import CSSPathType
 from textual.validation import Regex
 from textual.widgets import (
 	Button,
@@ -22,6 +23,7 @@ from textual.widgets import (
 	Static,
 	Switch,
 )
+from typing_extensions import override
 
 from vapor import argument_handler
 from vapor.api_interface import (
@@ -38,7 +40,7 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-class SettingsScreen(Screen):
+class SettingsScreen(Screen[None]):
 	"""Settings editor screen for modifying the config file."""
 
 	BINDINGS: ClassVar[List[BindingType]] = [
@@ -50,6 +52,7 @@ class SettingsScreen(Screen):
 		self.config: Config = config
 		super().__init__()
 
+	@override
 	def compose(self) -> ComposeResult:
 		"""Compose the Settings screen with textual components."""
 		with Container(id='content-container'):
@@ -78,13 +81,15 @@ class SettingsScreen(Screen):
 	@on(Switch.Changed)
 	def on_setting_changed(self, event: Switch.Changed) -> None:
 		"""Whenever a setting has changed, update it in the config file."""
-		self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
-		self.config.write_config()
+		if event.switch.id:
+			self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
+			self.config.write_config()
 
 
-class PrivateAccountScreen(ModalScreen):
+class PrivateAccountScreen(ModalScreen[None]):
 	"""Error screen for private account errors."""
 
+	@override
 	def compose(self) -> ComposeResult:
 		"""Compose the error screen with textual components."""
 		yield Center(
@@ -98,11 +103,11 @@ class PrivateAccountScreen(ModalScreen):
 		self.dismiss()
 
 
-class SteamApp(App):
+class SteamApp(App[None]):
 	"""Main application class."""
 
-	CSS_PATH = 'main.tcss'
-	TITLE = 'Steam Profile Proton Compatibility Checker'
+	CSS_PATH: ClassVar[Union[CSSPathType, None]] = 'main.tcss'
+	TITLE: Union[str, None] = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS: ClassVar[List[BindingType]] = [
 		Binding('ctrl+s', "push_screen('settings')", 'Settings', show=True),
 	]
@@ -115,12 +120,13 @@ class SteamApp(App):
 		if custom_config is None:
 			custom_config = Config()
 
-		self.config = custom_config.read_config()
+		self.config: Config = custom_config.read_config()
+		self.show_account_help_dialog: bool = False
 		super().__init__()
 
+	@override
 	def compose(self) -> ComposeResult:
 		"""Compose the application from textual components."""
-		self.show_account_help_dialog = False
 		yield Header()
 		yield Container(
 			Center(
@@ -147,7 +153,7 @@ class SteamApp(App):
 					id='user-rating',
 				),
 			),
-			DataTable(zebra_stripes=True),
+			DataTable[Union[str, Text]](zebra_stripes=True),
 			id='body',
 		)
 		yield Footer()
@@ -155,13 +161,13 @@ class SteamApp(App):
 	def on_mount(self) -> None:
 		"""On mount, we initialize the table columns."""
 		# add nothing to table so that it shows up
-		table = self.query_one(DataTable)
+		table: DataTable[Union[str, Text]] = self.query_one(DataTable)
 		table.add_columns('Title', 'Compatibility', 'Anti-Cheat Compatibility')
 
 		for _ in range(12):
 			table.add_row('', '')
 
-		self.install_screen(SettingsScreen(self.config), name='settings')
+		self.install_screen(SettingsScreen(self.config), name='settings')  # pyright: ignore[reportUnknownMemberType]
 
 	@work(exclusive=True)
 	@on(Button.Pressed, '#submit-button')
@@ -182,12 +188,12 @@ class SteamApp(App):
 				item.refresh()
 
 			# set the DataTable as loading
-			table = self.query_one(DataTable)
-			table.set_loading(loading=True)
+			table: DataTable[Union[str, Text]] = self.query_one(DataTable)
+			table.set_loading(loading=True)  # pyright: ignore[reportUnknownMemberType]
 
 			# get user's API key and ID
-			api_key: Input = self.query_one('#api-key')  # type: ignore
-			user_id: Input = self.query_one('#user-id')  # type: ignore
+			api_key: Input = cast(Input, self.query_one('#api-key'))
+			user_id: Input = cast(Input, self.query_one('#user-id'))
 
 			self.config.set_value('steam-api-key', api_key.value)
 
@@ -229,7 +235,7 @@ class SteamApp(App):
 				)
 
 			# Add the user's average rating to the screen
-			rating_label: Label = self.query_one('#user-rating')  # type: ignore
+			rating_label: Label = cast(Label, self.query_one('#user-rating'))
 			rating_label.update(
 				Text.assemble(
 					'User Average Rating: ',
@@ -258,7 +264,7 @@ class SteamApp(App):
 
 			# set table as not loading
 			table = self.query_one(DataTable)
-			table.set_loading(loading=False)
+			table.set_loading(loading=False)  # pyright: ignore[reportUnknownMemberType]
 
 			if self.show_account_help_dialog:
 				self.show_account_help_dialog = False
