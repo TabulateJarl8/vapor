@@ -22,7 +22,7 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-async def async_get(url: str, **session_kwargs: Any) -> Response:
+async def async_get(url: str, **session_kwargs: Any) -> Response:  # pyright: ignore[reportAny]
 	"""Async get request for fetching web content.
 
 	Args:
@@ -32,7 +32,7 @@ async def async_get(url: str, **session_kwargs: Any) -> Response:
 	Returns:
 		Response: A Response object containing the body and status code.
 	"""
-	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(
+	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(  # pyright: ignore[reportAny]
 		url,
 	) as response:
 		return Response(data=await response.text(), status=response.status)
