@@ -1,7 +1,7 @@
 """Vapor's global data structures."""
 
 from enum import Enum
-from typing import Dict, List, NamedTuple
+from typing import Dict, List, NamedTuple, TypedDict
 
 from platformdirs import user_config_path
 
@@ -115,3 +115,149 @@ RATING_DICT: Dict[str, ProtonDBRating] = {
 	'platinum': ProtonDBRating(weight=5, color='#B4C7DC'),
 	'native': ProtonDBRating(weight=6, color='#02b302'),
 }
+
+
+class _Platforms(TypedDict):
+	"""Available platforms a game can run on in Steam.
+
+	Attributes:
+		linux (bool): Linux
+		mac (bool): MacOS
+		windows (bool): Windows
+	"""
+
+	linux: bool
+	mac: bool
+	windows: bool
+
+
+class _GamePlatformData(TypedDict):
+	"""Contains different platforms a game is supported on.
+
+	Attributes:
+		platforms (_Platforms): The platforms the game is supported on
+	"""
+
+	platforms: _Platforms
+
+
+class SteamAPIPlatformsResponse(TypedDict):
+	"""Steam API response for which platforms a game is supported on.
+
+	Attributes:
+		success (bool): Whether or not the request was a success
+		data (_GamePlatformData): Dictionary containing the platforms the game is on
+	"""
+
+	success: bool
+	data: _GamePlatformData
+
+
+class AntiCheatAPIResponse(TypedDict):
+	"""AreWeAntiCheatYet anticheat data.
+
+	Attributes:
+		storeIds (Dict[str, str]): Distribution platforms the the game's ID on each
+		status (AntiCheatStatus): Game's current anticheat status
+	"""
+
+	storeIds: Dict[str, str]
+	status: AntiCheatStatus
+
+
+class ProtonDBAPIResponse(TypedDict):
+	"""ProtonDB response for a game's compatibility.
+
+	Attributes:
+		bestReportedTier (str): best tier of compatibility that has been reported
+		confidence (str): confidence of the compatibility rating
+		score (float):
+		tier (str): game's current tier of compatibility
+		total (int): total reports maybe?
+		trendingTier (str): current trending tier of compatibility
+	"""
+
+	bestReportedTier: str
+	confidence: str
+	score: float
+	tier: str
+	total: int
+	trendingTier: str
+
+
+class _SteamAPINameResolutionResponseData(TypedDict):
+	"""Subdictionary containing a Steam user's Steam ID.
+
+	Attributes:
+		steamid (str): Steam ID of a user
+		success (int): Whether or not the server succeeded in finding the ID
+	"""
+
+	steamid: str
+	success: int
+
+
+class SteamAPINameResolutionResponse(TypedDict):
+	"""Steam API response when resolving a vanity name to a user ID.
+
+	Attributes:
+		response (_SteamAPINameResolutionResponseData): Response containing user's ID
+	"""
+
+	response: _SteamAPINameResolutionResponseData
+
+
+class _SteamAPIGameInfo(TypedDict):
+	"""Steam API Response containing Game metadata.
+
+	Attributes:
+		appid (int): Game App ID
+		name (str): Game name
+		playtime_forever (int): Full playtime a user has in the game
+		img_icon_url (str):
+		has_community_visible_stats (bool):
+		playtime_windows_forever (int): Playtime on Windows
+		playtime_mac_forever (int): Playtime on MacOS
+		playtime_linux_forever (int): Playtime on Linux
+		playtime_deck_forever (int): Playtime on the Steam Deck
+		rtime_last_played (int): Time the user last played the game
+		content_descriptorids (List[int]):
+		playtime_disconnected (int): Total playtime while not connected to the internet
+	"""
+
+	appid: int
+	name: str
+	playtime_forever: int
+	img_icon_url: str
+	has_community_visible_stats: bool
+	playtime_windows_forever: int
+	playtime_mac_forever: int
+	playtime_linux_forever: int
+	playtime_deck_forever: int
+	rtime_last_played: int
+	content_descriptorids: List[int]
+	playtime_disconnected: int
+
+
+class _SteamAPIUserGameList(TypedDict):
+	"""Subdictionary in Steam Owned Games API response.
+
+	Contains a total game count and the list of a user's owned games.
+
+	Attributes:
+		game_count (int): Total number of games a user owns
+		games (List[_SteamAPIGameInfo]): List of games the user owns with metadata
+	"""
+
+	game_count: int
+	games: List[_SteamAPIGameInfo]
+
+
+class SteamAPIUserDataResponse(TypedDict):
+	"""Defines spec for Steam API user data for owned games.
+
+	Attributes:
+		response (_SteamAPIUserGameList): The actual data of the response is stored in here
+	"""
+
+	response: _SteamAPIUserGameList
