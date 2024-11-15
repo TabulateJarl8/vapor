@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Dict, List, NamedTuple, TypedDict
 
 from platformdirs import user_config_path
+from typing_extensions import NotRequired
 
 CONFIG_DIR = user_config_path(appname='vapor', appauthor='tabulate', ensure_exists=True)
 """The config directory used to write files such as config and cache."""
@@ -261,3 +262,41 @@ class SteamAPIUserDataResponse(TypedDict):
 	"""
 
 	response: _SteamAPIUserGameList
+
+
+class SerializedGameData(TypedDict):
+	"""Serialized game data for caching.
+
+	Attributes:
+		name (str): Name of the game
+		rating (str): Game's ProtonDB rating
+		timestamp (str): Last updated
+	"""
+
+	name: str
+	rating: str
+	timestamp: str
+
+
+class SerializedAnticheatData(TypedDict):
+	"""Serialized anticheat data for caching.
+
+	Attributes:
+		data (Dict[str, str]): Dictionary of app_id: anticheat_status
+		timestamp (str): Last updated
+	"""
+
+	data: Dict[str, str]
+	timestamp: str
+
+
+class CacheFile(TypedDict):
+	"""Fully aggregated cache file as JSON.
+
+	Attributes:
+		game_cache (NotRequired[Dict[str, SerializedGameData]]): Optional game cache
+		anticheat_cache (NotRequired[SerializedAnticheatData]): Optional anticheat cache
+	"""
+
+	game_cache: NotRequired[Dict[str, SerializedGameData]]
+	anticheat_cache: NotRequired[SerializedAnticheatData]
