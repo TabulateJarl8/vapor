@@ -1,7 +1,8 @@
 """Steam and ProtonDB API helper functions."""
 
+from __future__ import annotations
+
 import json
-from typing import Optional
 
 import aiohttp
 
@@ -68,13 +69,13 @@ async def check_game_is_native(app_id: str) -> bool:
 	)
 
 
-async def get_anti_cheat_data() -> Optional[Cache]:
+async def get_anti_cheat_data() -> Cache | None:
 	"""Get the anti-cheat data from cache.
 
 	If expired, this function will fetch new data and write that to cache.
 
 	Returns:
-		Optional[Cache]: The cache containing anti-cheat data.
+		Cache | None: The cache containing anti-cheat data.
 	"""
 	cache = Cache().load_cache()
 	if cache.has_anticheat_cache:

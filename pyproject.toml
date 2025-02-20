@@ -76,6 +76,9 @@ exclude_also = [
 omit = ["*/__main__.py"]
 
 
+[tool.ruff]
+target-version = "py39"
+
 [tool.ruff.lint]
 preview = true
 extend-select = [

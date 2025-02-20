@@ -1,6 +1,7 @@
 """Vapor UI tests."""
 
-from typing import Optional
+from __future__ import annotations
+
 from unittest.mock import Mock, patch
 
 import pytest
@@ -45,7 +46,7 @@ def config() -> Config:
 class MockCache:
 	"""Mock Cache object with set anticheat data."""
 
-	def get_anticheat_data(self, app_id: str) -> Optional[AntiCheatData]:
+	def get_anticheat_data(self, app_id: str) -> AntiCheatData | None:
 		"""Return anticheat status denied for id 123."""
 		if app_id == '123':
 			return AntiCheatData('123', AntiCheatStatus.DENIED)
