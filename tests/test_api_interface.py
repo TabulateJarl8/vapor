@@ -17,6 +17,7 @@ from vapor.cache_handler import Cache
 from vapor.data_structures import AntiCheatStatus, Game, Response
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
+# Test data fixtures
 STEAM_GAME_DATA = {
 	'123456': {'success': True, 'data': {'platforms': {'linux': True}}},
 	'789012': {'success': False},
@@ -71,11 +72,7 @@ class MockCache:
 		self.has_anticheat_cache: bool = has_anticheat
 
 	def get_game_data(self, app_id: None) -> Game:  # pyright: ignore[reportUnusedParameter]
-		"""Return a set Game data for testing.
-
-		Args:
-			app_id (None): unused argument.
-		"""
+		"""Return a set Game data for testing."""
 		return Game(
 			name='Euro Truck Simulator 2',
 			rating='native',
@@ -84,11 +81,7 @@ class MockCache:
 		)
 
 	def update_cache(self, game_list: None) -> None:  # pyright: ignore[reportUnusedParameter]
-		"""Update cache with dummy function. Does nothing.
-
-		Args:
-			game_list (None): unused argument.
-		"""
+		"""Update cache with dummy function. Does nothing."""
 
 
 class MockResponse:
@@ -100,10 +93,10 @@ class MockResponse:
 		self.data: str = data
 
 
+# Game Rating Tests
 @pytest.mark.asyncio
-async def test_get_game_average_rating() -> None:
-	"""Test that we can get the average game rating from ProtonDB."""
-	# test with no cache
+async def test_get_game_rating_no_cache() -> None:
+	"""Test getting game rating without cache."""
 	with (
 		patch('vapor.api_interface.check_game_is_native', return_value=False),
 		patch(
@@ -116,7 +109,10 @@ async def test_get_game_average_rating() -> None:
 	):
 		assert await get_game_average_rating('227300', Cache()) == 'platinum'
 
-	# test with cache
+
+@pytest.mark.asyncio
+async def test_get_game_rating_with_cache() -> None:
+	"""Test getting game rating with cache."""
 	with (
 		patch('vapor.api_interface.check_game_is_native', return_value=False),
 		patch(
@@ -132,11 +128,17 @@ async def test_get_game_average_rating() -> None:
 			== 'native'
 		)
 
-	# test with native game
+
+@pytest.mark.asyncio
+async def test_get_game_rating_native() -> None:
+	"""Test getting rating for native game."""
 	with patch('vapor.api_interface.check_game_is_native', return_value=True):
 		assert await get_game_average_rating('227300', Cache()) == 'native'
 
-	# test with request failure
+
+@pytest.mark.asyncio
+async def test_get_game_rating_request_failure() -> None:
+	"""Test handling of failed rating request."""
 	with (
 		patch('vapor.api_interface.check_game_is_native', return_value=False),
 		patch(
@@ -150,10 +152,10 @@ async def test_get_game_average_rating() -> None:
 		assert await get_game_average_rating('227300', Cache()) == 'pending'
 
 
+# Vanity Name Resolution Tests
 @pytest.mark.asyncio
-async def test_resolve_vanity_name() -> None:
-	"""Test that resolving the vanity name works."""
-	# test forbidden
+async def test_resolve_vanity_name_forbidden() -> None:
+	"""Test handling of forbidden vanity name resolution."""
 	with (
 		patch(
 			'vapor.api_interface.async_get',
@@ -166,7 +168,10 @@ async def test_resolve_vanity_name() -> None:
 	):
 		await resolve_vanity_name('', '')
 
-	# test invalid id
+
+@pytest.mark.asyncio
+async def test_resolve_vanity_name_invalid() -> None:
+	"""Test handling of invalid vanity name."""
 	with (
 		patch(
 			'vapor.api_interface.async_get',
@@ -179,7 +184,10 @@ async def test_resolve_vanity_name() -> None:
 	):
 		await resolve_vanity_name('', '')
 
-	# test valid id
+
+@pytest.mark.asyncio
+async def test_resolve_vanity_name_valid() -> None:
+	"""Test successful vanity name resolution."""
 	with patch(
 		'vapor.api_interface.async_get',
 		return_value=MockResponse(
@@ -190,10 +198,10 @@ async def test_resolve_vanity_name() -> None:
 		assert await resolve_vanity_name('', '') == '76561198872425795'
 
 
+# Steam User Data Tests
 @pytest.mark.asyncio
-async def test_get_steam_user_data() -> None:
-	"""Test that getting the steam user data works."""
-	# test invalid ID unauthorized
+async def test_get_steam_user_data_unauthorized() -> None:
+	"""Test handling of unauthorized Steam user data request."""
 	with (
 		patch(
 			'vapor.api_interface.resolve_vanity_name',
@@ -203,7 +211,10 @@ async def test_get_steam_user_data() -> None:
 	):
 		await get_steam_user_data('', '')
 
-	# test valid response
+
+@pytest.mark.asyncio
+async def test_get_steam_user_data_valid() -> None:
+	"""Test successful Steam user data retrieval."""
 	with (
 		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
 		patch(
@@ -216,7 +227,10 @@ async def test_get_steam_user_data() -> None:
 	):
 		await get_steam_user_data('', '76561198872425795')
 
-	# test invalid ID
+
+@pytest.mark.asyncio
+async def test_get_steam_user_data_invalid_id() -> None:
+	"""Test handling of invalid Steam ID."""
 	with (
 		patch(
 			'vapor.api_interface.resolve_vanity_name',
@@ -234,7 +248,10 @@ async def test_get_steam_user_data() -> None:
 	):
 		await get_steam_user_data('', 'n/a')
 
-	# test unauthorized valid steam ID
+
+@pytest.mark.asyncio
+async def test_get_steam_user_data_unauthorized_valid_id() -> None:
+	"""Test handling of unauthorized request with valid Steam ID."""
 	with (
 		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
 		patch(
@@ -249,10 +266,10 @@ async def test_get_steam_user_data() -> None:
 		await get_steam_user_data('', '76561198872425795')
 
 
+# Anti-Cheat Data Tests
 @pytest.mark.asyncio
-async def test_get_anti_cheat_data() -> None:
-	"""Test that anti-cheat data is gotten correctly."""
-	# test valid response
+async def test_get_anti_cheat_data_valid() -> None:
+	"""Test successful anti-cheat data retrieval."""
 	with (
 		patch(
 			'vapor.api_interface.async_get',
@@ -269,7 +286,10 @@ async def test_get_anti_cheat_data() -> None:
 		assert '789012' in game_data
 		assert game_data['789012'].status == AntiCheatStatus.SUPPORTED
 
-	# test existing cache
+
+@pytest.mark.asyncio
+async def test_get_anti_cheat_data_cached() -> None:
+	"""Test anti-cheat data retrieval with existing cache."""
 	with patch(
 		'vapor.cache_handler.Cache.load_cache',
 		return_value=MockCache(has_anticheat=True),
@@ -277,7 +297,10 @@ async def test_get_anti_cheat_data() -> None:
 		cache = await get_anti_cheat_data()
 		assert cache is not None
 
-	# test invalid response
+
+@pytest.mark.asyncio
+async def test_get_anti_cheat_data_invalid_response() -> None:
+	"""Test handling of invalid anti-cheat data response."""
 	with (
 		patch(
 			'vapor.api_interface.async_get',
@@ -287,7 +310,10 @@ async def test_get_anti_cheat_data() -> None:
 	):
 		assert await get_anti_cheat_data() is None
 
-	# test invalid data
+
+@pytest.mark.asyncio
+async def test_get_anti_cheat_data_invalid_data() -> None:
+	"""Test handling of invalid anti-cheat data format."""
 	with (
 		patch(
 			'vapor.api_interface.async_get',
@@ -298,9 +324,10 @@ async def test_get_anti_cheat_data() -> None:
 		assert await get_anti_cheat_data() is None
 
 
+# Steam User Games Parsing Tests
 @pytest.mark.asyncio
-async def test_parse_steam_user_games() -> None:
-	"""Test that Steam games are parsed correctly."""
+async def test_parse_steam_user_games_valid() -> None:
+	"""Test successful parsing of Steam user games."""
 	with patch(
 		'vapor.api_interface.get_game_average_rating',
 		return_value='gold',
@@ -312,28 +339,40 @@ async def test_parse_steam_user_games() -> None:
 
 
 @pytest.mark.asyncio
-async def test_parse_steam_user_priv_acct() -> None:
-	"""Test that Steam private accounts are handled correctly."""
+async def test_parse_steam_user_games_private() -> None:
+	"""Test handling of private Steam account."""
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
 		await _parse_steam_user_games({'response': {}}, cache)  # pyright: ignore[reportArgumentType]
 
 
+# Native Game Check Tests
 @pytest.mark.asyncio
-async def test_check_game_is_native() -> None:
-	"""Test that native games are correctly detected and errors are handled."""
+async def test_check_game_is_native_success() -> None:
+	"""Test successful native game check."""
 	with patch(
 		'vapor.api_interface.async_get',
 		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200),
 	):
 		assert not await check_game_is_native('123')
-		assert not await check_game_is_native('invalid')
 		assert await check_game_is_native('456')
 
+
+@pytest.mark.asyncio
+async def test_check_game_is_native_invalid() -> None:
+	"""Test handling of invalid game ID for native check."""
+	with patch(
+		'vapor.api_interface.async_get',
+		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200),
+	):
+		assert not await check_game_is_native('invalid')
+
+
+@pytest.mark.asyncio
+async def test_check_game_is_native_error() -> None:
+	"""Test handling of API error during native check."""
 	with patch(
 		'vapor.api_interface.async_get',
 		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 401),
 	):
-		# this should say false even though 456 is native because it
-		# should fail with a non-200 status code
 		assert not await check_game_is_native('456')
