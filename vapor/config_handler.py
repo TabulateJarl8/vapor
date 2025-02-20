@@ -2,7 +2,6 @@
 
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Optional
 
 from typing_extensions import Self
 
@@ -22,7 +21,7 @@ class Config:
 	def __init__(self) -> None:
 		"""Construct a new Config object."""
 		self._config_path: Path = CONFIG_PATH
-		self._config_data: Optional[ConfigParser] = None
+		self._config_data: ConfigParser | None = None
 
 	def set_value(self, key: str, value: str) -> Self:
 		"""Set a value in the config file.

@@ -1,7 +1,7 @@
 """Vapor's global data structures."""
 
 from enum import Enum
-from typing import Dict, List, NamedTuple, TypedDict
+from typing import NamedTuple, TypedDict
 
 from platformdirs import user_config_path
 from typing_extensions import NotRequired
@@ -28,7 +28,7 @@ HTTP_FORBIDDEN = 403
 STEAM_USER_ID_LENGTH = 17
 
 
-_ANTI_CHEAT_COLORS: Dict[str, str] = {
+_ANTI_CHEAT_COLORS: dict[str, str] = {
 	'Denied': 'red',
 	'Broken': 'dark_orange3',
 	'Planned': 'purple',
@@ -101,13 +101,13 @@ class SteamUserData(NamedTuple):
 	as well as the user's average ProtonDB rating.
 	"""
 
-	game_ratings: List[Game]
+	game_ratings: list[Game]
 	"""The user's game ratings from ProtonDB."""
 	user_average: str
 	"""The user's average ProtonDB rating."""
 
 
-RATING_DICT: Dict[str, ProtonDBRating] = {
+RATING_DICT: dict[str, ProtonDBRating] = {
 	'borked': ProtonDBRating(weight=0, color='red'),
 	'pending': ProtonDBRating(weight=1, color='blue'),
 	'bronze': ProtonDBRating(weight=2, color='#CD7F32'),
@@ -147,7 +147,7 @@ class SteamAPIPlatformsResponse(TypedDict):
 
 	Attributes:
 		success (bool): Whether or not the request was a success
-		data (_GamePlatformData): Dictionary containing the platforms the game is on
+		data (_GamePlatformData): dictionary containing the platforms the game is on
 	"""
 
 	success: bool
@@ -158,11 +158,11 @@ class AntiCheatAPIResponse(TypedDict):
 	"""AreWeAntiCheatYet anticheat data.
 
 	Attributes:
-		storeIds (Dict[str, str]): Distribution platforms the the game's ID on each
+		storeIds (dict[str, str]): Distribution platforms the the game's ID on each
 		status (AntiCheatStatus): Game's current anticheat status
 	"""
 
-	storeIds: Dict[str, str]
+	storeIds: dict[str, str]
 	status: AntiCheatStatus
 
 
@@ -222,7 +222,7 @@ class _SteamAPIGameInfo(TypedDict):
 		playtime_linux_forever (int): Playtime on Linux
 		playtime_deck_forever (int): Playtime on the Steam Deck
 		rtime_last_played (int): Time the user last played the game
-		content_descriptorids (List[int]):
+		content_descriptorids (list[int]):
 		playtime_disconnected (int): Total playtime while not connected to the internet
 	"""
 
@@ -236,32 +236,32 @@ class _SteamAPIGameInfo(TypedDict):
 	playtime_linux_forever: int
 	playtime_deck_forever: int
 	rtime_last_played: int
-	content_descriptorids: List[int]
+	content_descriptorids: list[int]
 	playtime_disconnected: int
 
 
-class _SteamAPIUserGameList(TypedDict):
+class _SteamAPIUserGamelist(TypedDict):
 	"""Subdictionary in Steam Owned Games API response.
 
 	Contains a total game count and the list of a user's owned games.
 
 	Attributes:
 		game_count (int): Total number of games a user owns
-		games (List[_SteamAPIGameInfo]): List of games the user owns with metadata
+		games (list[_SteamAPIGameInfo]): list of games the user owns with metadata
 	"""
 
 	game_count: int
-	games: List[_SteamAPIGameInfo]
+	games: list[_SteamAPIGameInfo]
 
 
 class SteamAPIUserDataResponse(TypedDict):
 	"""Defines spec for Steam API user data for owned games.
 
 	Attributes:
-		response (_SteamAPIUserGameList): The data of the response is stored in here
+		response (_SteamAPIUserGamelist): The data of the response is stored in here
 	"""
 
-	response: _SteamAPIUserGameList
+	response: _SteamAPIUserGamelist
 
 
 class SerializedGameData(TypedDict):
@@ -282,11 +282,11 @@ class SerializedAnticheatData(TypedDict):
 	"""Serialized anticheat data for caching.
 
 	Attributes:
-		data (Dict[str, str]): Dictionary of app_id: anticheat_status
+		data (dict[str, str]): dictionary of app_id: anticheat_status
 		timestamp (str): Last updated
 	"""
 
-	data: Dict[str, str]
+	data: dict[str, str]
 	timestamp: str
 
 
@@ -294,9 +294,9 @@ class CacheFile(TypedDict):
 	"""Fully aggregated cache file as JSON.
 
 	Attributes:
-		game_cache (NotRequired[Dict[str, SerializedGameData]]): Optional game cache
+		game_cache (NotRequired[dict[str, SerializedGameData]]): Optional game cache
 		anticheat_cache (NotRequired[SerializedAnticheatData]): Optional anticheat cache
 	"""
 
-	game_cache: NotRequired[Dict[str, SerializedGameData]]
+	game_cache: NotRequired[dict[str, SerializedGameData]]
 	anticheat_cache: NotRequired[SerializedAnticheatData]

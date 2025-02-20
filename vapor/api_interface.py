@@ -1,7 +1,6 @@
 """Steam and ProtonDB API helper functions."""
 
 import json
-from typing import Any, Dict, List, Optional
 
 import aiohttp
 
@@ -27,19 +26,21 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-async def async_get(url: str, **session_kwargs: Any) -> Response:  # pyright: ignore[reportAny]
+async def async_get(url: str) -> Response:
 	"""Async get request for fetching web content.
 
 	Args:
 		url (str): The URL to fetch data from.
-		**session_kwargs (Any): arguments to pass to aiohttp.ClientSession
 
 	Returns:
 		Response: A Response object containing the body and status code.
 	"""
-	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(  # pyright: ignore[reportAny]
-		url,
-	) as response:
+	async with (
+		aiohttp.ClientSession() as session,
+		session.get(
+			url,
+		) as response,
+	):
 		return Response(data=await response.text(), status=response.status)
 
 
@@ -58,19 +59,19 @@ async def check_game_is_native(app_id: str) -> bool:
 	if data.status != HTTP_SUCCESS:
 		return False
 
-	json_data: Dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
+	json_data: dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
 
 	return _extract_game_is_native(json_data, app_id)
 
 
 def _extract_game_is_native(
-	data: Dict[str, SteamAPIPlatformsResponse],
+	data: dict[str, SteamAPIPlatformsResponse],
 	app_id: str,
 ) -> bool:
 	"""Extract whether or not a game is Linux native from API data.
 
 	Args:
-		data (Dict[str, SteamAPIPlatformsResponse]): the data from the Steam API.
+		data (dict[str, SteamAPIPlatformsResponse]): the data from the Steam API.
 		app_id (str): The App ID of the game
 
 	Returns:
@@ -86,13 +87,13 @@ def _extract_game_is_native(
 	)
 
 
-async def get_anti_cheat_data() -> Optional[Cache]:
+async def get_anti_cheat_data() -> Cache | None:
 	"""Get the anti-cheat data from cache.
 
 	If expired, this function will fetch new data and write that to cache.
 
 	Returns:
-		Optional[Cache]: The cache containing anti-cheat data.
+		Cache | None: The cache containing anti-cheat data.
 	"""
 	cache = Cache().load_cache()
 	if cache.has_anticheat_cache:
@@ -106,7 +107,7 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 		return None
 
 	try:
-		anti_cheat_data: List[AntiCheatAPIResponse] = json.loads(data.data)
+		anti_cheat_data: list[AntiCheatAPIResponse] = json.loads(data.data)
 	except json.JSONDecodeError:
 		return None
 
@@ -117,14 +118,14 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 	return cache
 
 
-def parse_anti_cheat_data(data: List[AntiCheatAPIResponse]) -> List[AntiCheatData]:
+def parse_anti_cheat_data(data: list[AntiCheatAPIResponse]) -> list[AntiCheatData]:
 	"""Parse and return data from AreWeAntiCheatYet.
 
 	Args:
-		data (List[AntiCheatAPIResponse]): The data from AreWeAntiCheatYet
+		data (list[AntiCheatAPIResponse]): The data from AreWeAntiCheatYet
 
 	Returns:
-		List[AntiCheatData]: the anticheat statuses of each game in the given data
+		list[AntiCheatData]: the anticheat statuses of each game in the given data
 	"""
 	return [
 		AntiCheatData(
@@ -270,7 +271,7 @@ async def parse_steam_user_games(
 	# remove all of the games that we used that were already cached
 	# this ensures that the timestamps of those games don't get updated
 	game_ratings_copy = game_ratings.copy()
-	games_to_remove: List[Game] = [
+	games_to_remove: list[Game] = [
 		game
 		for game in game_ratings_copy
 		if cache.get_game_data(game.app_id) is not None
