@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import ClassVar, cast
+from typing import ClassVar, Optional, Union, cast
 from urllib.parse import urlparse
 
 from rich.text import Text
@@ -108,13 +108,13 @@ class PrivateAccountScreen(ModalScreen[None]):
 class SteamApp(App[None]):
 	"""Main application class."""
 
-	CSS_PATH: ClassVar[CSSPathType | None] = 'main.tcss'
-	TITLE: str | None = 'Steam Profile Proton Compatibility Checker'
+	CSS_PATH: ClassVar[Optional[CSSPathType]] = 'main.tcss'
+	TITLE: Optional[str] = 'Steam Profile Proton Compatibility Checker'
 	BINDINGS: ClassVar[list[BindingType]] = [
 		Binding('ctrl+s', "push_screen('settings')", 'Settings', show=True),
 	]
 
-	def __init__(self, custom_config: Config | None = None) -> None:
+	def __init__(self, custom_config: Optional[Config] = None) -> None:
 		"""Construct the application.
 
 		This reads and instantiates the config.
@@ -155,7 +155,7 @@ class SteamApp(App[None]):
 					id='user-rating',
 				),
 			),
-			DataTable[str | Text](zebra_stripes=True),
+			DataTable[Union[str, Text]](zebra_stripes=True),
 			id='body',
 		)
 		yield Footer()
@@ -163,7 +163,7 @@ class SteamApp(App[None]):
 	def on_mount(self) -> None:
 		"""On mount, we initialize the table columns."""
 		# add nothing to table so that it shows up
-		table: DataTable[str | Text] = self.query_one(DataTable)
+		table: DataTable[Union[str, Text]] = self.query_one(DataTable)
 		table.add_columns('Title', 'Compatibility', 'Anti-Cheat Compatibility')
 
 		for _ in range(12):
@@ -190,7 +190,7 @@ class SteamApp(App[None]):
 				item.refresh()
 
 			# set the DataTable as loading
-			table: DataTable[str | Text] = self.query_one(DataTable)
+			table: DataTable[Union[str, Text]] = self.query_one(DataTable)
 			table.set_loading(loading=True)
 
 			# get user's API key and ID

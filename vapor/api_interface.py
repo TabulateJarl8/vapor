@@ -1,6 +1,7 @@
 """Steam and ProtonDB API helper functions."""
 
 import json
+from typing import Optional
 
 import aiohttp
 
@@ -35,12 +36,7 @@ async def async_get(url: str) -> Response:
 	Returns:
 		Response: A Response object containing the body and status code.
 	"""
-	async with (
-		aiohttp.ClientSession() as session,
-		session.get(
-			url,
-		) as response,
-	):
+	async with aiohttp.ClientSession() as session, session.get(url) as response:
 		return Response(data=await response.text(), status=response.status)
 
 
@@ -72,13 +68,13 @@ async def check_game_is_native(app_id: str) -> bool:
 	)
 
 
-async def get_anti_cheat_data() -> Cache | None:
+async def get_anti_cheat_data() -> Optional[Cache]:
 	"""Get the anti-cheat data from cache.
 
 	If expired, this function will fetch new data and write that to cache.
 
 	Returns:
-		Cache | None: The cache containing anti-cheat data.
+		Optional[Cache]: The cache containing anti-cheat data.
 	"""
 	cache = Cache().load_cache()
 	if cache.has_anticheat_cache:
