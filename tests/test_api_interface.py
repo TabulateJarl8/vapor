@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from vapor.api_interface import (
-	_parse_steam_user_games,
+	_parse_steam_user_games,  # pyright: ignore[reportPrivateUsage]
 	check_game_is_native,
 	get_anti_cheat_data,
 	get_game_average_rating,
@@ -65,12 +65,12 @@ PROTONDB_API_RESPONSE = {
 class MockCache:
 	"""Mock Cache object with a set Game data."""
 
-	def __init__(self, has_game: bool, has_anticheat: bool = False) -> None:
+	def __init__(self, has_game: bool = False, has_anticheat: bool = False) -> None:
 		"""Construct a new MockCache object."""
-		self.has_game_cache = has_game
-		self.has_anticheat_cache = has_anticheat
+		self.has_game_cache: bool = has_game
+		self.has_anticheat_cache: bool = has_anticheat
 
-	def get_game_data(self, app_id: None) -> Game:
+	def get_game_data(self, app_id: None) -> Game:  # pyright: ignore[reportUnusedParameter]
 		"""Return a set Game data for testing.
 
 		Args:
@@ -83,7 +83,7 @@ class MockCache:
 			app_id='227300',
 		)
 
-	def update_cache(self, game_list: None) -> None:
+	def update_cache(self, game_list: None) -> None:  # pyright: ignore[reportUnusedParameter]
 		"""Update cache with dummy function. Does nothing.
 
 		Args:
@@ -96,8 +96,8 @@ class MockResponse:
 
 	def __init__(self, status: int, data: str) -> None:
 		"""Construct a new MockResponse."""
-		self.status = status
-		self.data = data
+		self.status: int = status
+		self.data: str = data
 
 
 @pytest.mark.asyncio
@@ -152,6 +152,7 @@ async def test_get_game_average_rating() -> None:
 
 @pytest.mark.asyncio
 async def test_resolve_vanity_name() -> None:
+	"""Test that resolving the vanity name works."""
 	# test forbidden
 	with (
 		patch(
@@ -229,6 +230,21 @@ async def test_get_steam_user_data() -> None:
 				data='{}',
 			),
 		),
+		pytest.raises(InvalidIDError),
+	):
+		await get_steam_user_data('', 'n/a')
+
+	# test unauthorized valid steam ID
+	with (
+		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=401,
+				data='{}',
+			),
+		),
+		pytest.raises(UnauthorizedError),
 	):
 		await get_steam_user_data('', '76561198872425795')
 
@@ -246,7 +262,7 @@ async def test_get_anti_cheat_data() -> None:
 	):
 		cache = await get_anti_cheat_data()
 		assert cache is not None
-		game_data = cache._anti_cheat_data
+		game_data = cache._anti_cheat_data  # pyright: ignore[reportPrivateUsage]
 		assert len(game_data) == 2
 		assert '123456' in game_data
 		assert game_data['123456'].status == AntiCheatStatus.DENIED
@@ -256,7 +272,7 @@ async def test_get_anti_cheat_data() -> None:
 	# test existing cache
 	with patch(
 		'vapor.cache_handler.Cache.load_cache',
-		return_value=MockCache(has_game=False, has_anticheat=True),
+		return_value=MockCache(has_anticheat=True),
 	):
 		cache = await get_anti_cheat_data()
 		assert cache is not None
@@ -290,7 +306,7 @@ async def test_parse_steam_user_games() -> None:
 		return_value='gold',
 	):
 		cache = MockCache(has_game=True)
-		result = await _parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)  # type: ignore
+		result = await _parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)  # pyright: ignore[reportArgumentType]
 		assert len(result.game_ratings) == 2
 		assert result.user_average == 'gold'
 
@@ -300,7 +316,7 @@ async def test_parse_steam_user_priv_acct() -> None:
 	"""Test that Steam private accounts are handled correctly."""
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
-		await _parse_steam_user_games({'response': {}}, cache)  # type: ignore
+		await _parse_steam_user_games({'response': {}}, cache)  # pyright: ignore[reportArgumentType]
 
 
 @pytest.mark.asyncio
