@@ -203,10 +203,10 @@ async def get_steam_user_data(api_key: str, user_id: str) -> SteamUserData:
 
 	user_data: SteamAPIUserDataResponse = json.loads(data.data)
 
-	return await parse_steam_user_games(user_data, cache)
+	return await _parse_steam_user_games(user_data, cache)
 
 
-async def parse_steam_user_games(
+async def _parse_steam_user_games(
 	data: SteamAPIUserDataResponse,
 	cache: Cache,
 ) -> SteamUserData:

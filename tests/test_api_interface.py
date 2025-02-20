@@ -6,13 +6,16 @@ from unittest.mock import patch
 import pytest
 
 from vapor.api_interface import (
+	_parse_steam_user_games,
 	check_game_is_native,
 	get_anti_cheat_data,
-	parse_steam_user_games,
+	get_game_average_rating,
+	get_steam_user_data,
+	resolve_vanity_name,
 )
 from vapor.cache_handler import Cache
 from vapor.data_structures import AntiCheatStatus, Game, Response
-from vapor.exceptions import PrivateAccountError
+from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 STEAM_GAME_DATA = {
 	'123456': {'success': True, 'data': {'platforms': {'linux': True}}},
@@ -34,6 +37,10 @@ STEAM_USER_GAMES_DATA = {
 	},
 }
 
+STEAM_VANITY_URL_DATA = {'response': {'steamid': '76561198872425795', 'success': 1}}
+
+STEAM_VANITY_URL_DATA_INVALID = {'response': {'message': 'No match', 'success': 42}}
+
 STEAM_GAME_PLATFORM_DATA = {
 	'123': {
 		'success': True,
@@ -43,6 +50,15 @@ STEAM_GAME_PLATFORM_DATA = {
 		'success': True,
 		'data': {'platforms': {'windows': False, 'mac': True, 'linux': True}},
 	},
+}
+
+PROTONDB_API_RESPONSE = {
+	'bestReportedTier': 'platinum',
+	'confidence': 'strong',
+	'score': 0.88,
+	'tier': 'platinum',
+	'total': 302,
+	'trendingTier': 'platinum',
 }
 
 
@@ -84,13 +100,139 @@ class MockResponse:
 		self.data = data
 
 
-# def test_parse_steam_game_data() -> None:
-# 	"""Test that Steam data is correctly parsed."""
-# 	assert _extract_game_is_native(STEAM_GAME_DATA, '123456')
-# 	assert not _extract_game_is_native(STEAM_GAME_DATA, '789012')
-# 	assert not _extract_game_is_native(STEAM_GAME_DATA, '123')
-#
-#
+@pytest.mark.asyncio
+async def test_get_game_average_rating() -> None:
+	"""Test that we can get the average game rating from ProtonDB."""
+	# test with no cache
+	with (
+		patch('vapor.api_interface.check_game_is_native', return_value=False),
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=200,
+				data=json.dumps(PROTONDB_API_RESPONSE),
+			),
+		),
+	):
+		assert await get_game_average_rating('227300', Cache()) == 'platinum'
+
+	# test with cache
+	with (
+		patch('vapor.api_interface.check_game_is_native', return_value=False),
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=200,
+				data=json.dumps(PROTONDB_API_RESPONSE),
+			),
+		),
+	):
+		assert (
+			await get_game_average_rating('227300', MockCache(has_game=True))  # pyright: ignore[reportArgumentType]
+			== 'native'
+		)
+
+	# test with native game
+	with patch('vapor.api_interface.check_game_is_native', return_value=True):
+		assert await get_game_average_rating('227300', Cache()) == 'native'
+
+	# test with request failure
+	with (
+		patch('vapor.api_interface.check_game_is_native', return_value=False),
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=400,
+				data='{}',
+			),
+		),
+	):
+		assert await get_game_average_rating('227300', Cache()) == 'pending'
+
+
+@pytest.mark.asyncio
+async def test_resolve_vanity_name() -> None:
+	# test forbidden
+	with (
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=403,
+				data='{}',
+			),
+		),
+		pytest.raises(UnauthorizedError),
+	):
+		await resolve_vanity_name('', '')
+
+	# test invalid id
+	with (
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=200,
+				data=json.dumps(STEAM_VANITY_URL_DATA_INVALID),
+			),
+		),
+		pytest.raises(InvalidIDError),
+	):
+		await resolve_vanity_name('', '')
+
+	# test valid id
+	with patch(
+		'vapor.api_interface.async_get',
+		return_value=MockResponse(
+			status=200,
+			data=json.dumps(STEAM_VANITY_URL_DATA),
+		),
+	):
+		assert await resolve_vanity_name('', '') == '76561198872425795'
+
+
+@pytest.mark.asyncio
+async def test_get_steam_user_data() -> None:
+	"""Test that getting the steam user data works."""
+	# test invalid ID unauthorized
+	with (
+		patch(
+			'vapor.api_interface.resolve_vanity_name',
+			side_effect=UnauthorizedError(),
+		),
+		pytest.raises(UnauthorizedError),
+	):
+		await get_steam_user_data('', '')
+
+	# test valid response
+	with (
+		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=200,
+				data=json.dumps(STEAM_USER_GAMES_DATA),
+			),
+		),
+	):
+		await get_steam_user_data('', '76561198872425795')
+
+	# test invalid ID
+	with (
+		patch(
+			'vapor.api_interface.resolve_vanity_name',
+			side_effect=InvalidIDError(),
+		),
+		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(
+				status=400,
+				data='{}',
+			),
+		),
+	):
+		await get_steam_user_data('', '76561198872425795')
+
+
 @pytest.mark.asyncio
 async def test_get_anti_cheat_data() -> None:
 	"""Test that anti-cheat data is gotten correctly."""
@@ -148,7 +290,7 @@ async def test_parse_steam_user_games() -> None:
 		return_value='gold',
 	):
 		cache = MockCache(has_game=True)
-		result = await parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)  # type: ignore
+		result = await _parse_steam_user_games(STEAM_USER_GAMES_DATA, cache)  # type: ignore
 		assert len(result.game_ratings) == 2
 		assert result.user_average == 'gold'
 
@@ -158,7 +300,7 @@ async def test_parse_steam_user_priv_acct() -> None:
 	"""Test that Steam private accounts are handled correctly."""
 	cache = MockCache(has_game=True)
 	with pytest.raises(PrivateAccountError):
-		await parse_steam_user_games({'response': {}}, cache)  # type: ignore
+		await _parse_steam_user_games({'response': {}}, cache)  # type: ignore
 
 
 @pytest.mark.asyncio
