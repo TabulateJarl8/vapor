@@ -6,13 +6,12 @@ from unittest.mock import patch
 import pytest
 
 from vapor.api_interface import (
-	Response,
-	_extract_game_is_native,
 	check_game_is_native,
-	parse_anti_cheat_data,
+	get_anti_cheat_data,
 	parse_steam_user_games,
 )
-from vapor.data_structures import AntiCheatStatus, Game
+from vapor.cache_handler import Cache
+from vapor.data_structures import AntiCheatStatus, Game, Response
 from vapor.exceptions import PrivateAccountError
 
 STEAM_GAME_DATA = {
@@ -50,9 +49,10 @@ STEAM_GAME_PLATFORM_DATA = {
 class MockCache:
 	"""Mock Cache object with a set Game data."""
 
-	def __init__(self, has_game: bool) -> None:
+	def __init__(self, has_game: bool, has_anticheat: bool = False) -> None:
 		"""Construct a new MockCache object."""
 		self.has_game_cache = has_game
+		self.has_anticheat_cache = has_anticheat
 
 	def get_game_data(self, app_id: None) -> Game:
 		"""Return a set Game data for testing.
@@ -75,20 +75,69 @@ class MockCache:
 		"""
 
 
-def test_parse_steam_game_data() -> None:
-	"""Test that Steam data is correctly parsed."""
-	assert _extract_game_is_native(STEAM_GAME_DATA, '123456')
-	assert not _extract_game_is_native(STEAM_GAME_DATA, '789012')
-	assert not _extract_game_is_native(STEAM_GAME_DATA, '123')
+class MockResponse:
+	"""Mock API response."""
+
+	def __init__(self, status: int, data: str) -> None:
+		"""Construct a new MockResponse."""
+		self.status = status
+		self.data = data
 
 
-def test_parse_anti_cheat_data() -> None:
-	"""Test that anti-cheat data is parsed correctly."""
-	result = parse_anti_cheat_data(ANTI_CHEAT_DATA)
-	assert len(result) == 2
-	assert result[0].app_id == '123456'
-	assert result[0].status == AntiCheatStatus.DENIED
-	assert result[1].status == AntiCheatStatus.SUPPORTED
+# def test_parse_steam_game_data() -> None:
+# 	"""Test that Steam data is correctly parsed."""
+# 	assert _extract_game_is_native(STEAM_GAME_DATA, '123456')
+# 	assert not _extract_game_is_native(STEAM_GAME_DATA, '789012')
+# 	assert not _extract_game_is_native(STEAM_GAME_DATA, '123')
+#
+#
+@pytest.mark.asyncio
+async def test_get_anti_cheat_data() -> None:
+	"""Test that anti-cheat data is gotten correctly."""
+	# test valid response
+	with (
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(status=200, data=json.dumps(ANTI_CHEAT_DATA)),
+		),
+		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
+	):
+		cache = await get_anti_cheat_data()
+		assert cache is not None
+		game_data = cache._anti_cheat_data
+		assert len(game_data) == 2
+		assert '123456' in game_data
+		assert game_data['123456'].status == AntiCheatStatus.DENIED
+		assert '789012' in game_data
+		assert game_data['789012'].status == AntiCheatStatus.SUPPORTED
+
+	# test existing cache
+	with patch(
+		'vapor.cache_handler.Cache.load_cache',
+		return_value=MockCache(has_game=False, has_anticheat=True),
+	):
+		cache = await get_anti_cheat_data()
+		assert cache is not None
+
+	# test invalid response
+	with (
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(status=400, data=json.dumps(ANTI_CHEAT_DATA)),
+		),
+		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
+	):
+		assert await get_anti_cheat_data() is None
+
+	# test invalid data
+	with (
+		patch(
+			'vapor.api_interface.async_get',
+			return_value=MockResponse(status=200, data='n/a'),
+		),
+		patch('vapor.cache_handler.Cache.load_cache', return_value=Cache()),
+	):
+		assert await get_anti_cheat_data() is None
 
 
 @pytest.mark.asyncio
@@ -120,6 +169,7 @@ async def test_check_game_is_native() -> None:
 		return_value=Response(json.dumps(STEAM_GAME_PLATFORM_DATA), 200),
 	):
 		assert not await check_game_is_native('123')
+		assert not await check_game_is_native('invalid')
 		assert await check_game_is_native('456')
 
 	with patch(

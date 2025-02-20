@@ -61,27 +61,12 @@ async def check_game_is_native(app_id: str) -> bool:
 
 	json_data: dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
 
-	return _extract_game_is_native(json_data, app_id)
-
-
-def _extract_game_is_native(
-	data: dict[str, SteamAPIPlatformsResponse],
-	app_id: str,
-) -> bool:
-	"""Extract whether or not a game is Linux native from API data.
-
-	Args:
-		data (dict[str, SteamAPIPlatformsResponse]): the data from the Steam API.
-		app_id (str): The App ID of the game
-
-	Returns:
-		bool: Whether or not the game has native Linux support.
-	"""
-	if str(app_id) not in data:
+	# extract whether or not a game is Linux native
+	if str(app_id) not in json_data:
 		return False
 
-	json_data = data[str(app_id)]
-	return json_data.get('success', False) and json_data['data']['platforms'].get(
+	game_data = json_data[str(app_id)]
+	return game_data.get('success', False) and game_data['data']['platforms'].get(
 		'linux',
 		False,
 	)
@@ -111,30 +96,19 @@ async def get_anti_cheat_data() -> Cache | None:
 	except json.JSONDecodeError:
 		return None
 
-	deserialized_data = parse_anti_cheat_data(anti_cheat_data)
-
-	cache.update_cache(anti_cheat_list=deserialized_data)
-
-	return cache
-
-
-def parse_anti_cheat_data(data: list[AntiCheatAPIResponse]) -> list[AntiCheatData]:
-	"""Parse and return data from AreWeAntiCheatYet.
-
-	Args:
-		data (list[AntiCheatAPIResponse]): The data from AreWeAntiCheatYet
-
-	Returns:
-		list[AntiCheatData]: the anticheat statuses of each game in the given data
-	"""
-	return [
+	# parse the data from AreWeAntiCheatYet
+	deserialized_data = [
 		AntiCheatData(
 			app_id=game['storeIds']['steam'],
 			status=AntiCheatStatus(game['status']),
 		)
-		for game in data
+		for game in anti_cheat_data
 		if 'steam' in game['storeIds']
 	]
+
+	cache.update_cache(anti_cheat_list=deserialized_data)
+
+	return cache
 
 
 async def get_game_average_rating(app_id: str, cache: Cache) -> str:
