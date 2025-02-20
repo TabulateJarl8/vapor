@@ -1,5 +1,7 @@
 """Main code and UI."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import ClassVar, cast
 from urllib.parse import urlparse
