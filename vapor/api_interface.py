@@ -1,7 +1,8 @@
 """Steam and ProtonDB API helper functions."""
 
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
 
 import aiohttp
 
@@ -27,19 +28,16 @@ from vapor.data_structures import (
 from vapor.exceptions import InvalidIDError, PrivateAccountError, UnauthorizedError
 
 
-async def async_get(url: str, **session_kwargs: Any) -> Response:  # pyright: ignore[reportAny]
+async def async_get(url: str) -> Response:
 	"""Async get request for fetching web content.
 
 	Args:
 		url (str): The URL to fetch data from.
-		**session_kwargs (Any): arguments to pass to aiohttp.ClientSession
 
 	Returns:
 		Response: A Response object containing the body and status code.
 	"""
-	async with aiohttp.ClientSession(**session_kwargs) as session, session.get(  # pyright: ignore[reportAny]
-		url,
-	) as response:
+	async with aiohttp.ClientSession() as session, session.get(url) as response:
 		return Response(data=await response.text(), status=response.status)
 
 
@@ -58,41 +56,26 @@ async def check_game_is_native(app_id: str) -> bool:
 	if data.status != HTTP_SUCCESS:
 		return False
 
-	json_data: Dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
+	json_data: dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
 
-	return _extract_game_is_native(json_data, app_id)
-
-
-def _extract_game_is_native(
-	data: Dict[str, SteamAPIPlatformsResponse],
-	app_id: str,
-) -> bool:
-	"""Extract whether or not a game is Linux native from API data.
-
-	Args:
-		data (Dict[str, SteamAPIPlatformsResponse]): the data from the Steam API.
-		app_id (str): The App ID of the game
-
-	Returns:
-		bool: Whether or not the game has native Linux support.
-	"""
-	if str(app_id) not in data:
+	# extract whether or not a game is Linux native
+	if str(app_id) not in json_data:
 		return False
 
-	json_data = data[str(app_id)]
-	return json_data.get('success', False) and json_data['data']['platforms'].get(
+	game_data = json_data[str(app_id)]
+	return game_data.get('success', False) and game_data['data']['platforms'].get(
 		'linux',
 		False,
 	)
 
 
-async def get_anti_cheat_data() -> Optional[Cache]:
+async def get_anti_cheat_data() -> Cache | None:
 	"""Get the anti-cheat data from cache.
 
 	If expired, this function will fetch new data and write that to cache.
 
 	Returns:
-		Optional[Cache]: The cache containing anti-cheat data.
+		Cache | None: The cache containing anti-cheat data.
 	"""
 	cache = Cache().load_cache()
 	if cache.has_anticheat_cache:
@@ -106,34 +89,23 @@ async def get_anti_cheat_data() -> Optional[Cache]:
 		return None
 
 	try:
-		anti_cheat_data: List[AntiCheatAPIResponse] = json.loads(data.data)
+		anti_cheat_data: list[AntiCheatAPIResponse] = json.loads(data.data)
 	except json.JSONDecodeError:
 		return None
 
-	deserialized_data = parse_anti_cheat_data(anti_cheat_data)
-
-	cache.update_cache(anti_cheat_list=deserialized_data)
-
-	return cache
-
-
-def parse_anti_cheat_data(data: List[AntiCheatAPIResponse]) -> List[AntiCheatData]:
-	"""Parse and return data from AreWeAntiCheatYet.
-
-	Args:
-		data (List[AntiCheatAPIResponse]): The data from AreWeAntiCheatYet
-
-	Returns:
-		List[AntiCheatData]: the anticheat statuses of each game in the given data
-	"""
-	return [
+	# parse the data from AreWeAntiCheatYet
+	deserialized_data = [
 		AntiCheatData(
 			app_id=game['storeIds']['steam'],
 			status=AntiCheatStatus(game['status']),
 		)
-		for game in data
+		for game in anti_cheat_data
 		if 'steam' in game['storeIds']
 	]
+
+	cache.update_cache(anti_cheat_list=deserialized_data)
+
+	return cache
 
 
 async def get_game_average_rating(app_id: str, cache: Cache) -> str:
@@ -228,10 +200,10 @@ async def get_steam_user_data(api_key: str, user_id: str) -> SteamUserData:
 
 	user_data: SteamAPIUserDataResponse = json.loads(data.data)
 
-	return await parse_steam_user_games(user_data, cache)
+	return await _parse_steam_user_games(user_data, cache)
 
 
-async def parse_steam_user_games(
+async def _parse_steam_user_games(
 	data: SteamAPIUserDataResponse,
 	cache: Cache,
 ) -> SteamUserData:
@@ -270,7 +242,7 @@ async def parse_steam_user_games(
 	# remove all of the games that we used that were already cached
 	# this ensures that the timestamps of those games don't get updated
 	game_ratings_copy = game_ratings.copy()
-	games_to_remove: List[Game] = [
+	games_to_remove: list[Game] = [
 		game
 		for game in game_ratings_copy
 		if cache.get_game_data(game.app_id) is not None

@@ -8,10 +8,13 @@ from vapor.argument_handler import parse_args
 
 def test_parse_args_without_clear_cache() -> None:
 	"""Test parsing arguments without --clear-cache flag."""
-	with patch(
-		'argparse.ArgumentParser.parse_args',
-		return_value=argparse.Namespace(clear_cache=False),
-	), patch('pathlib.Path.unlink', MagicMock()) as mock_unlink:
+	with (
+		patch(
+			'argparse.ArgumentParser.parse_args',
+			return_value=argparse.Namespace(clear_cache=False),
+		),
+		patch('pathlib.Path.unlink', MagicMock()) as mock_unlink,
+	):
 		parse_args()
 		mock_unlink.assert_not_called()
 

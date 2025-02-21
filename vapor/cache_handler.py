@@ -1,9 +1,10 @@
 """Vapor cache handling."""
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from typing_extensions import Self, override
 
@@ -36,8 +37,8 @@ class Cache:
 	def __init__(self) -> None:
 		"""Construct a new Cache object."""
 		self.cache_path: Path = CACHE_PATH
-		self._games_data: Dict[str, Tuple[Game, str]] = {}
-		self._anti_cheat_data: Dict[str, AntiCheatData] = {}
+		self._games_data: dict[str, tuple[Game, str]] = {}
+		self._anti_cheat_data: dict[str, AntiCheatData] = {}
 		self._anti_cheat_timestamp: str = ''
 
 	@override
@@ -45,11 +46,11 @@ class Cache:
 		"""Return the string representation of the Cache object."""
 		return f'Cache({self.__dict__!r})'
 
-	def _serialize_game_data(self) -> Dict[str, SerializedGameData]:
+	def _serialize_game_data(self) -> dict[str, SerializedGameData]:
 		"""Serialize the game data into a valid JSON dict.
 
 		Returns:
-			Dict[str, SerializedGameData]: Valid JSON dict.
+			dict[str, SerializedGameData]: Valid JSON dict.
 		"""
 		return {
 			app_id: {
@@ -84,14 +85,14 @@ class Cache:
 		"""Whether or not there is anticheat cache loaded."""
 		return bool(self._anti_cheat_data)
 
-	def get_game_data(self, app_id: str) -> Optional[Game]:
+	def get_game_data(self, app_id: str) -> Game | None:
 		"""Get game data from app ID.
 
 		Args:
 			app_id (str): The game's app ID.
 
 		Returns:
-			Optional[Game]: The game data if exists. If not, None.
+			Game | None: The game data if exists. If not, None.
 		"""
 		data = self._games_data.get(app_id, None)
 		if data is not None:
@@ -99,14 +100,14 @@ class Cache:
 
 		return None
 
-	def get_anticheat_data(self, app_id: str) -> Optional[AntiCheatData]:
+	def get_anticheat_data(self, app_id: str) -> AntiCheatData | None:
 		"""Get anticheat data from app ID.
 
 		Args:
 			app_id (str): The game's app ID.
 
 		Returns:
-			Optional[AntiCheatData]: The game anticheat data if exists. If not, None.
+			AntiCheatData | None: The game anticheat data if exists. If not, None.
 		"""
 		data = self._anti_cheat_data.get(app_id, None)
 		if data is not None:
@@ -114,11 +115,11 @@ class Cache:
 
 		return None
 
-	def load_cache(self, prune: Optional[bool] = True) -> Self:
+	def load_cache(self, prune: bool | None = True) -> Self:
 		"""Load and deserialize the cache.
 
 		Args:
-			prune (bool, optional): Whether or not to prune old cache
+			prune (bool): Whether or not to prune old cache
 				entries. Defaults to True.
 
 		Returns:
@@ -157,15 +158,15 @@ class Cache:
 
 	def update_cache(
 		self,
-		game_list: Optional[List[Game]] = None,
-		anti_cheat_list: Optional[List[AntiCheatData]] = None,
+		game_list: list[Game] | None = None,
+		anti_cheat_list: list[AntiCheatData] | None = None,
 	) -> Self:
 		"""Update the cache file with new game and anticheat data.
 
 		Args:
-			game_list (Optional[List[Game]], optional): List of new game data.
+			game_list (list[Game] | None): list of new game data.
 				Defaults to None.
-			anti_cheat_list (Optional[List[AntiCheatData]], optional): List of new
+			anti_cheat_list (list[AntiCheatData] | None): list of new
 				anticheat data. Defaults to None.
 
 		Returns:
