@@ -155,7 +155,7 @@ class SteamApp(App[None]):
 					id='user-rating',
 				),
 			),
-			DataTable[str | Text](zebra_stripes=True),
+			DataTable['str | Text'](zebra_stripes=True),
 			id='body',
 		)
 		yield Footer()
