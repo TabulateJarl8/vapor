@@ -116,7 +116,7 @@ class Cache:
 
 		return None
 
-	def load_cache(self, prune: bool | None = True) -> Self:
+	def load_cache(self, prune: bool = True) -> Self:
 		"""Load and deserialize the cache.
 
 		Args:
