@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import cast
 
 import aiohttp
 
@@ -56,7 +57,7 @@ async def check_game_is_native(app_id: str) -> bool:
 	if data.status != HTTP_SUCCESS:
 		return False
 
-	json_data: dict[str, SteamAPIPlatformsResponse] = json.loads(data.data)
+	json_data = cast(dict[str, SteamAPIPlatformsResponse], json.loads(data.data))
 
 	# extract whether or not a game is Linux native
 	if str(app_id) not in json_data:
@@ -89,7 +90,7 @@ async def get_anti_cheat_data() -> Cache | None:
 		return None
 
 	try:
-		anti_cheat_data: list[AntiCheatAPIResponse] = json.loads(data.data)
+		anti_cheat_data = cast(list[AntiCheatAPIResponse], json.loads(data.data))
 	except json.JSONDecodeError:
 		return None
 
@@ -132,7 +133,7 @@ async def get_game_average_rating(app_id: str, cache: Cache) -> str:
 	if data.status != HTTP_SUCCESS:
 		return 'pending'
 
-	json_data: ProtonDBAPIResponse = json.loads(data.data)
+	json_data = cast(ProtonDBAPIResponse, json.loads(data.data))
 
 	return json_data.get('tier', 'pending')
 
@@ -158,7 +159,7 @@ async def resolve_vanity_name(api_key: str, name: str) -> str:
 	if data.status == HTTP_FORBIDDEN:
 		raise UnauthorizedError
 
-	user_data: SteamAPINameResolutionResponse = json.loads(data.data)
+	user_data = cast(SteamAPINameResolutionResponse, json.loads(data.data))
 	if 'response' not in user_data or user_data['response']['success'] != 1:
 		raise InvalidIDError
 
@@ -198,7 +199,7 @@ async def get_steam_user_data(api_key: str, user_id: str) -> SteamUserData:
 	if data.status == HTTP_UNAUTHORIZED:
 		raise UnauthorizedError
 
-	user_data: SteamAPIUserDataResponse = json.loads(data.data)
+	user_data = cast(SteamAPIUserDataResponse, json.loads(data.data))
 
 	return await _parse_steam_user_games(user_data, cache)
 

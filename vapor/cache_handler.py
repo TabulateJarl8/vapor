@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 
 from typing_extensions import Self, override
 
@@ -129,7 +130,7 @@ class Cache:
 			self.prune_cache()
 
 		try:
-			data: CacheFile = json.loads(self.cache_path.read_text())
+			data = cast(CacheFile, json.loads(self.cache_path.read_text()))
 		except Exception:
 			return self
 
@@ -208,7 +209,7 @@ class Cache:
 			Self: self.
 		"""
 		try:
-			data: CacheFile = json.loads(self.cache_path.read_text())
+			data = cast(CacheFile, json.loads(self.cache_path.read_text()))
 		except Exception:
 			return self
 

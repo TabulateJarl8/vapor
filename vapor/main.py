@@ -163,7 +163,7 @@ class SteamApp(App[None]):
 	def on_mount(self) -> None:
 		"""On mount, we initialize the table columns."""
 		# add nothing to table so that it shows up
-		table: DataTable[str | Text] = self.query_one(DataTable)
+		table = cast(DataTable[str | Text], self.query_one(DataTable))
 		table.add_columns('Title', 'Compatibility', 'Anti-Cheat Compatibility')
 
 		for _ in range(12):
@@ -190,7 +190,7 @@ class SteamApp(App[None]):
 				item.refresh()
 
 			# set the DataTable as loading
-			table: DataTable[str | Text] = self.query_one(DataTable)
+			table = cast(DataTable[str | Text], self.query_one(DataTable))
 			table.set_loading(loading=True)
 
 			# get user's API key and ID
@@ -265,7 +265,7 @@ class SteamApp(App[None]):
 				item.disabled = False
 
 			# set table as not loading
-			table = self.query_one(DataTable)
+			table = cast(DataTable[str | Text], self.query_one(DataTable))
 			table.set_loading(loading=False)
 
 			if self.show_account_help_dialog:
