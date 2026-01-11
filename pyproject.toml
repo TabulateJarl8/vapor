@@ -10,18 +10,18 @@ homepage = "https://tabulate.tech/software/vapor"
 repository = "https://github.com/TabulateJarl8/vapor"
 keywords = ["steam", "protondb", "compatibility", "textual", "tui"]
 classifiers = [
-	"Development Status :: 5 - Production/Stable",
-	"Environment :: Console",
-	"Intended Audience :: End Users/Desktop",
-	"License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-	"Natural Language :: English",
-	"Operating System :: OS Independent",
-	"Programming Language :: Python :: 3.9",
-	"Programming Language :: Python :: 3.10",
-	"Programming Language :: Python :: 3.11",
-	"Programming Language :: Python :: 3.12",
-	"Programming Language :: Python :: 3.13",
-	"Typing :: Typed",
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
 ]
 include = [{ path = "tests", format = "sdist" }]
 
@@ -41,6 +41,7 @@ ruff = "^0.9.7"
 pytest = "^8.3.4"
 pytest-cov = "^5.0.0"
 pytest-asyncio = "^0.24.0"
+mypy = "^1.19.1"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
@@ -54,27 +55,30 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.report]
 exclude_also = [
-	# Don't complain about missing debug-only code:
-	"def __repr__",
-	"if self\\.debug",
+  # Don't complain about missing debug-only code:
+  "def __repr__",
+  "if self\\.debug",
 
-	# Don't complain if tests don't hit defensive assertion code:
-	"raise AssertionError",
-	"raise NotImplementedError",
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise AssertionError",
+  "raise NotImplementedError",
 
-	# Don't complain if non-runnable code isn't run:
-	"if 0:",
-	"if __name__ == .__main__.:",
+  # Don't complain if non-runnable code isn't run:
+  "if 0:",
+  "if __name__ == .__main__.:",
 
-	# Don't complain about abstract methods, they aren't run:
-	"@(abc\\.)?abstractmethod",
+  # Don't complain about abstract methods, they aren't run:
+  "@(abc\\.)?abstractmethod",
 
-	# dont test functions that only make network calls
-	"async def async_get",
+  # dont test functions that only make network calls
+  "async def async_get",
 ]
 
 omit = ["*/__main__.py"]
 
+[tool.mypy]
+strict = true
+exclude = ["tests/"]
 
 [tool.ruff]
 target-version = "py39"
@@ -82,98 +86,98 @@ target-version = "py39"
 [tool.ruff.lint]
 preview = true
 extend-select = [
-	# pycodestyle
-	"E",
-	# Warnings
-	"W",
-	# Pyflakes
-	"F",
-	# pydocstyle
-	"D",
-	# pyupgrade
-	"UP",
-	# flake8-bugbear
-	"B",
-	# flake8-simplify
-	"SIM",
-	# isort
-	"I",
-	# pep8-naming
-	"N",
-	# flake8-bandit
-	"S",
-	# flake8-boolean-trap
-	"FBT",
-	# flake8-comprehensions
-	"C4",
-	# flake8-pie
-	"PIE",
-	# quote rules
-	"Q001",
-	"Q002",
-	# flake8-raise
-	"RSE",
-	# flake8-return
-	"RET",
-	# flake8-unused-arguments
-	"ARG",
-	# flake8-use-pathlib
-	"PTH",
-	# eradicate
-	"ERA",
-	# perflint
-	"PERF",
-	# flake8-2020
-	"YTT",
-	# flake8-annotations
-	"ANN",
-	# flake8-async
-	"ASYNC",
-	# flake8-builtins
-	"A",
-	# flake8-commas
-	"COM",
-	# flake8-implicit-str-concat
-	"ISC",
-	# flake8-print
-	"T20",
-	# flake8-pytest-style
-	"PT",
-	# flake8-use-pathlib
-	"PTH",
-	# pylint
-	"PL",
-	# tryceratops
-	"TRY",
-	# refurb
-	"FURB",
-	# pydoclint
-	"DOC",
-	# ruff rules
-	"RUF",
+  # pycodestyle
+  "E",
+  # Warnings
+  "W",
+  # Pyflakes
+  "F",
+  # pydocstyle
+  "D",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+  # pep8-naming
+  "N",
+  # flake8-bandit
+  "S",
+  # flake8-boolean-trap
+  "FBT",
+  # flake8-comprehensions
+  "C4",
+  # flake8-pie
+  "PIE",
+  # quote rules
+  "Q001",
+  "Q002",
+  # flake8-raise
+  "RSE",
+  # flake8-return
+  "RET",
+  # flake8-unused-arguments
+  "ARG",
+  # flake8-use-pathlib
+  "PTH",
+  # eradicate
+  "ERA",
+  # perflint
+  "PERF",
+  # flake8-2020
+  "YTT",
+  # flake8-annotations
+  "ANN",
+  # flake8-async
+  "ASYNC",
+  # flake8-builtins
+  "A",
+  # flake8-commas
+  "COM",
+  # flake8-implicit-str-concat
+  "ISC",
+  # flake8-print
+  "T20",
+  # flake8-pytest-style
+  "PT",
+  # flake8-use-pathlib
+  "PTH",
+  # pylint
+  "PL",
+  # tryceratops
+  "TRY",
+  # refurb
+  "FURB",
+  # pydoclint
+  "DOC",
+  # ruff rules
+  "RUF",
 ]
 
 ignore = [
-	# complains about tab indentation
-	"W191",
-	"D206",
-	# adds a line break before a class docstring
-	"D203",
-	# puts the first line summary of a docstring on a different line than the """
-	"D213",
-	# tries to add a blank line after the last docstring section
-	"D413",
-	# yells at you if you use a bool typed function argument
-	"FBT001",
-	"FBT002",
-	# yells at you for using try-except in a for loop
-	"PERF203",
-	# allow for the use of Any
-	"ANN401",
-	# false positives for overriding methods (i think)
-	"PLR6301",
-	# disable too many branches check
-	"PLR0912",
+  # complains about tab indentation
+  "W191",
+  "D206",
+  # adds a line break before a class docstring
+  "D203",
+  # puts the first line summary of a docstring on a different line than the """
+  "D213",
+  # tries to add a blank line after the last docstring section
+  "D413",
+  # yells at you if you use a bool typed function argument
+  "FBT001",
+  "FBT002",
+  # yells at you for using try-except in a for loop
+  "PERF203",
+  # allow for the use of Any
+  "ANN401",
+  # false positives for overriding methods (i think)
+  "PLR6301",
+  # disable too many branches check
+  "PLR0912",
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -84,7 +84,7 @@ class SettingsScreen(Screen[None]):
 	def on_setting_changed(self, event: Switch.Changed) -> None:
 		"""Whenever a setting has changed, update it in the config file."""
 		if event.switch.id:
-			self.config.set_value(event.switch.id, str(event.value).lower())  # type: ignore
+			self.config.set_value(event.switch.id, str(event.value).lower())
 			self.config.write_config()
 
 
@@ -178,16 +178,16 @@ class SteamApp(App[None]):
 		"""Populate datatable with game information when submit button is pressed."""
 		try:
 			# disable all Input widgets
-			for item in self.query(Input):
-				item.disabled = True
-				item.blur()
-				item.refresh()
+			for input_widget in self.query(Input):
+				input_widget.disabled = True
+				input_widget.blur()
+				input_widget.refresh()
 
 			# disable all Button widgets
-			for item in self.query(Button):
-				item.disabled = True
-				item.blur()
-				item.refresh()
+			for button_widget in self.query(Button):
+				button_widget.disabled = True
+				button_widget.blur()
+				button_widget.refresh()
 
 			# set the DataTable as loading
 			table = cast(DataTable['str | Text'], self.query_one(DataTable))
@@ -257,12 +257,12 @@ class SteamApp(App[None]):
 			self.config.write_config()
 
 			# re-enable Input widgets
-			for item in self.query(Input):
-				item.disabled = False
+			for input_widget in self.query(Input):
+				input_widget.disabled = False
 
 			# re-enable Button widgets
-			for item in self.query(Button):
-				item.disabled = False
+			for button_widget in self.query(Button):
+				button_widget.disabled = False
 
 			# set table as not loading
 			table = cast(DataTable['str | Text'], self.query_one(DataTable))

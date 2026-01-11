@@ -44,7 +44,7 @@ jobs:
       # cache it.
       - uses: snok/install-poetry@v1
         with:
-          version: 1.8.5
+          version: 2.2.1
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -71,13 +71,21 @@ jobs:
       - run: poetry install --no-interaction
 
       # run the tests and check for 100% coverage
-      - run: poetry run pytest . --cov=vapor --cov-report=term-missing --cov-report=xml
+      - name: Run tests
+        run: poetry run pytest . --cov=vapor --cov-report=term-missing --cov-report=xml
 
       # check for code style errors
-      - run: poetry run ruff check
-      # disable code format checking until docstrings are sorted out
-      # https://github.com/astral-sh/ruff/issues/8430
-      # - run: poetry run ruff format --check
+      - name: Linting checking
+        run: poetry run ruff check
+
+      # code format checking
+      - name: Code format checking
+        run: poetry run ruff format --check
+
+      # static typing checking
+      - name: Static type checking
+        run: poetry run mypy .
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5.0.2
         with:
