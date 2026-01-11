@@ -10,7 +10,7 @@ format:
 	poetry run ruff format .
 
 lint:
-	poetry run ruff lint .
+	poetry run ruff check .
 
 build:
 	poetry build
