@@ -17,5 +17,5 @@ build:
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rfv "{}" +
-	rm -rfv .mypy_cache .pytest_cache .ruff_cache .dist .htmlcov
-	rm -v .coverage .coverage.xml
+	rm -rfv .mypy_cache .pytest_cache .ruff_cache dist htmlcov
+	rm -fv .coverage coverage.xml
