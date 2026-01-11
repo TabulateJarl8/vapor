@@ -72,7 +72,7 @@ jobs:
 
       # run the tests and check for 100% coverage
       - name: Run tests
-        run: poetry run pytest . --cov=vapor --cov-report=term-missing --cov-report=xml
+        run: poetry run pytest . --numprocesses auto --cov=vapor --cov-report=term-missing --cov-report=xml
 
       # check for code style errors
       - name: Linting checking
