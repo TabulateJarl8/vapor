@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from rich.text import Text
 from textual.color import Color
+from textual.content import Content
 from textual.coordinate import Coordinate
 from textual.widgets import Button, DataTable
 from textual.widgets._data_table import CellDoesNotExist
@@ -39,7 +40,7 @@ STEAM_PROFILE_URL = 'https://steamcommunity.com/profiles/76561198872425795'
 def config() -> Config:
 	"""Pytest fixture of Config that uses InMemoryPath."""
 	cfg = Config()
-	cfg._config_path = InMemoryPath()  # type: ignore
+	cfg._config_path = InMemoryPath()
 	return cfg
 
 
@@ -58,8 +59,8 @@ async def test_first_startup(config: Config) -> None:
 	"""Test the UI at first startup."""
 	app = SteamApp(config)
 	async with app.run_test() as _:
-		assert not app.query_one('#api-key').value  # type: ignore
-		assert not app.query_one('#user-id').value  # type: ignore
+		assert not app.query_one('#api-key').value
+		assert not app.query_one('#user-id').value
 		assert not app.query_one(DataTable).get_cell_at(Coordinate(0, 0))
 
 
@@ -140,16 +141,18 @@ async def test_table_population_username(config: Config) -> None:
 			assert await pilot.click('#submit-button')
 
 			# check that the user average rating was created correctly
-			assert app.query_one('#user-rating').renderable == Text.assemble(  # type: ignore
-				'User Average Rating: ',
-				(
-					'Gold',
-					RATING_DICT['gold'][1],
+			assert app.query_one('#user-rating').render() == Content.from_rich_text(
+				Text.assemble(
+					'User Average Rating: ',
+					(
+						'Gold',
+						RATING_DICT['gold'][1],
+					),
 				),
 			)
 
 			# check the the appropriate game was added to the table
-			table = app.query_one(DataTable)
+			table = app.query_one(DataTable)  # pyright: ignore[reportUnknownVariableType]
 			assert table.get_cell_at(Coordinate(0, 0)) == 'Cool Game'
 			assert table.get_cell_at(Coordinate(0, 1)) == Text(
 				'Gold',
@@ -186,7 +189,7 @@ async def test_parse_steam_url_id(config: Config) -> None:
 			assert await pilot.click('#submit-button')
 
 			# check that username was parsed correctly
-			assert app.query_one('#user-id').value == 'tabulatejarl8'  # type: ignore
+			assert app.query_one('#user-id').value == 'tabulatejarl8'
 
 
 @pytest.mark.asyncio
@@ -211,7 +214,7 @@ async def test_parse_steam_url_profiles(config: Config) -> None:
 			assert await pilot.click('#submit-button')
 
 			# check that username was parsed correctly
-			assert app.query_one('#user-id').value == '76561198872425795'  # type: ignore
+			assert app.query_one('#user-id').value == '76561198872425795'
 
 
 @pytest.mark.asyncio
