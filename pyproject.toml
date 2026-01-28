@@ -86,7 +86,6 @@ exclude_also = [
   # dont test functions that only make network calls
   "async def async_get",
 ]
-
 omit = ["*/__main__.py"]
 
 [tool.mypy]
@@ -195,7 +194,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "ANN001", "ANN002", "PLC2701", "ARG002", "PLR2004", "DOC"]
-"vapor/main.py" = ["DOC402"]
+"src/vapor/main.py" = ["DOC402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
