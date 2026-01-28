@@ -56,7 +56,11 @@ class SettingsScreen(Screen[None]):
 
 	@override
 	def compose(self) -> ComposeResult:
-		"""Compose the Settings screen with textual components."""
+		"""Compose the Settings screen with textual components.
+
+		Yields:
+			ComposeResult: textual UI components
+		"""
 		with Container(id='content-container'):
 			yield Markdown('# Settings', classes='heading')
 
@@ -93,7 +97,11 @@ class PrivateAccountScreen(ModalScreen[None]):
 
 	@override
 	def compose(self) -> ComposeResult:
-		"""Compose the error screen with textual components."""
+		"""Compose the error screen with textual components.
+
+		Yields:
+			ComposeResult: textual UI components
+		"""
 		yield Center(
 			Label(PRIVATE_ACCOUNT_HELP_MESSAGE, id='acct-info'),
 			Button('Close', variant='error', id='close-acct-screen'),
@@ -128,7 +136,11 @@ class SteamApp(App[None]):
 
 	@override
 	def compose(self) -> ComposeResult:
-		"""Compose the application from textual components."""
+		"""Compose the application from textual components.
+
+		Yields:
+			ComposeResult: textual UI components
+		"""
 		yield Header()
 		yield Container(
 			Center(
