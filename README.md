@@ -18,49 +18,74 @@ Vapor is a Python package built on [Textual](https://github.com/textualize/textu
 ![Vapor Showing Information](https://raw.githubusercontent.com/TabulateJarl8/vapor/master/img/info.png)
 
 ## Installation
-[pipx](https://pipx.pypa.io/stable/) is a great tool for installing Python packages in an isolated environment. If wanting to install via `pipx`, just run
+
+Vapor is available as [vapor-steam](https://pypi.org/project/vapor-steam/) on PyPI.
+
+[uv](https://docs.astral.sh/uv/):
+
 ```shell
-pipx install vapor-steam
+# install permanently
+uv tool install vapor-steam
+
+# or, just try it out
+uvx --from vapor-steam vapor
 ```
-This project can also be installed with pip normally with
+
+With pip or pipx:
+
 ```shell
+# with pipx
+pipx install vapor-steam
+
+# with standard pip
 pip3 install vapor-steam
 ```
 
 Arch users can install the package from the AUR with your favorite AUR helper:
+
 ```shell
 paru -S python-vapor-steam
+
 ```
+
 Or manually with `makepkg`:
+
 ```shell
 git clone https://aur.archlinux.org/python-vapor-steam.git && cd python-vapor-steam
 makepkg -si
 ```
 
 ## Quick Start
+
 1. **Obtain a Steam API Key**: Get your Steam API key by [filling out this form](https://steamcommunity.com/dev/apikey).
-2. **Run the Program**: Run vapor with the `vapor` command. It can also be ran without installation, with `python3 vapor/main.py`.
+2. **Run the Program**: Run vapor with the `vapor` command. It can also be ran without installation, with `uv run python src/vapor/main.py`.
 
 ## Features
- - **User Library Analysis**: Fetches and displays game compatibility ratings from ProtonDB for a specified Steam user.
- - **User Average Compatibility**: Calculates and presents the average game compatibility for the user's library.
- - **Automatic Steam ID Resolution**: Vapor automatically resolves the given Steam ID, so you can use either your vanity name or your 64-bit Steam ID.
- - **Automatic Steam URL Detection**: Directly paste a Steam user profile URL, like `https://steamcommunity.com/id/<user>` or `https://steamcommunity.com/profiles/<user>` into the "User ID" box and it will be detected and parsed correctly.
- - **AreWeAntiCheatYet Integration**: Integartion with Are We Anti-Cheat Yet? to show the anti-cheat compatibility status of your games.
+
+- **User Library Analysis**: Fetches and displays game compatibility ratings from ProtonDB for a specified Steam user.
+- **User Average Compatibility**: Calculates and presents the average game compatibility for the user's library.
+- **Automatic Steam ID Resolution**: Vapor automatically resolves the given Steam ID, so you can use either your vanity name or your 64-bit Steam ID.
+- **Automatic Steam URL Detection**: Directly paste a Steam user profile URL, like `https://steamcommunity.com/id/<user>` or `https://steamcommunity.com/profiles/<user>` into the "User ID" box and it will be detected and parsed correctly.
+- **AreWeAntiCheatYet Integration**: Integartion with Are We Anti-Cheat Yet? to show the anti-cheat compatibility status of your games.
 
 ## Requirements
-This package is built on top of textual and aiohttp, and uses poetry to manage dependencies. To install dependencies locally, just run `poetry install` in the repository's directory.
+
+This package is built on top of [Textual](https://github.com/Textualize/textual), and uses uv to manage dependencies. To install dependencies locally, just run `uv sync` in the repository's directory.
 
 ## Private Steam Account Error
+
 This error occurs if your game details are set to private in your privacy settings. First, double check that you're using the correct Steam ID or vanity URL. This is different from your display name. To make sure, you can directly copy your profile URL into Vapor and your Steam ID will be extracted. Your profile URL will look like `https://steamcommunity.com/id/<vanity_name>` or `https://steamcommunity.com/profiles/<steam_id>`.
 
 If you've double checked that your account information is correct, please complete the following steps to fix this issue:
 
 1. From Steam, click the user dropdown and select "View my profile"
 1. Click the "Edit Profile" button
-2. Click the "Privacy Settings" tab
-3. Set "Game details" to Public
-4. Uncheck the Always keep my total playtime private option
+1. Click the "Privacy Settings" tab
+1. Set "Game details" to Public
+1. Uncheck the Always keep my total playtime private option
 
 ## Contributing
+
 Contributions are welcomed! For bug fixes, improvements, or feature requests, feel free to open an issue or pull request.
+
+Developer dependencies can be installed with `uv sync --dev`
