@@ -1,4 +1,4 @@
-.PHONY: test test-cov lint format build clean check-all
+.PHONY: test test-cov lint format clean check-all
 
 test:
 	uv run pytest . --numprocesses auto
