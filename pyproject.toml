@@ -1,13 +1,12 @@
-[tool.poetry]
+[project]
 name = "vapor-steam"
-version = "1.7.0"
+version = "1.7.1"
 description = "TUI program to check the ProtonDB compatibility of all the games of a Steam user."
-authors = ["TabulateJarl8 <tabulatejarl8@gmail.com>"]
-license = "GPLv3"
 readme = "README.md"
-packages = [{ include = "vapor" }]
-homepage = "https://tabulate.tech/software/vapor"
-repository = "https://github.com/TabulateJarl8/vapor"
+authors = [{ name = "TabulateJarl8", email = "tabulatejarl8@gmail.com" }]
+requires-python = ">=3.9"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 keywords = ["steam", "protondb", "compatibility", "textual", "tui"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -24,46 +23,48 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Typing :: Typed",
 ]
-include = [{ path = "tests", format = "sdist" }]
-
-[tool.poetry.dependencies]
-python = "^3.9.0"
-textual = "^7.2.0"
-aiohttp = "^3.13.3"
-platformdirs = [
-  { version = ">=4.4.0,<4.5.0", python = "<3.10" },
-  { version = "^4.5.0", python = ">=3.10" },
+dependencies = [
+  "aiohttp>=3.13.3",
+  "textual>=7.4.0",
+  "typing-extensions>=4.15.0",
+  "platformdirs>=4.4,<4.5 ; python_full_version < '3.10'",
+  "platformdirs>=4.4.0 ; python_full_version >= '3.10'",
 ]
-typing-extensions = "^4.15.0"
 
-[tool.poetry.scripts]
+[project.urls]
+homepage = "https://tabulate.tech/software/vapor"
+repository = "https://github.com/TabulateJarl8/vapor"
+
+[project.scripts]
 vapor = "vapor.__main__:main"
 
-[tool.poetry.group.dev.dependencies]
-textual-dev = "^1.8.0"
-ruff = "^0.14.11"
-pytest = [
-  { version = "<9.0.0", python = "<3.10" },
-  { version = "^9.0.0", python = ">=3.10" },
+[build-system]
+requires = ["uv_build>=0.9.27,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "vapor"
+source-include = ["tests/**"]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.19.1",
+  "pytest<9.0.0 ; python_full_version < '3.10'",
+  "pytest>=9.0.0 ; python_full_version >= '3.10'",
+  "pytest-asyncio<1.3.0 ; python_full_version < '3.10'",
+  "pytest-asyncio>=1.3.0 ; python_full_version >= '3.10'",
+  "pytest-cov>=7.0.0",
+  "pytest-sugar>=1.1.1",
+  "pytest-xdist>=3.8.0",
+  "ruff>=0.14.14",
+  "textual-dev>=1.8.0",
 ]
-pytest-cov = "^7.0.0"
-pytest-asyncio = [
-  { version = "<1.3.0", python = "<3.10" },
-  { version = "^1.3.0", python = ">=3.10" },
-]
-mypy = "^1.19.1"
-pytest-xdist = "^3.8.0"
-pytest-sugar = "^1.1.1"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.pyright]
 reportUnusedCallResult = false
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.report]
 exclude_also = [
@@ -85,7 +86,6 @@ exclude_also = [
   # dont test functions that only make network calls
   "async def async_get",
 ]
-
 omit = ["*/__main__.py"]
 
 [tool.mypy]
@@ -194,7 +194,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "ANN001", "ANN002", "PLC2701", "ARG002", "PLR2004", "DOC"]
-"vapor/main.py" = ["DOC402"]
+"src/vapor/main.py" = ["DOC402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
